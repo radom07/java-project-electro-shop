@@ -1,6 +1,6 @@
 package pl.adrian.electroshop.repository;
 
-import pl.adrian.electroshop.model.Product;
+import pl.adrian.electroshop.model.product.Product;
 
 import java.util.List;
 import java.util.Map;

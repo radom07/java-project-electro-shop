@@ -2,8 +2,8 @@ package pl.adrian.electroshop.repository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pl.adrian.electroshop.model.Electronics;
-import pl.adrian.electroshop.model.Product;
+import pl.adrian.electroshop.model.product.Electronics;
+import pl.adrian.electroshop.model.product.Product;
 
 import java.math.BigDecimal;
 import java.util.List;

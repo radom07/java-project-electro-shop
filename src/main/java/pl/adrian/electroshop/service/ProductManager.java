@@ -1,6 +1,6 @@
 package pl.adrian.electroshop.service;
 
-import pl.adrian.electroshop.model.Product;
+import pl.adrian.electroshop.model.product.Product;
 import pl.adrian.electroshop.repository.ProductRepository;
 
 import java.util.List;

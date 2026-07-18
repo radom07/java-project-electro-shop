@@ -6,8 +6,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import pl.adrian.electroshop.model.Electronics;
-import pl.adrian.electroshop.model.Product;
+import pl.adrian.electroshop.model.product.Electronics;
+import pl.adrian.electroshop.model.product.Product;
 import pl.adrian.electroshop.repository.ProductRepository;
 
 import java.math.BigDecimal;
