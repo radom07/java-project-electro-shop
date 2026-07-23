@@ -11,10 +11,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.beans.Beans.isInstanceOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 
 class OrderTest {
 
@@ -71,6 +69,7 @@ class OrderTest {
 
         Product productToAdd = new Electronics("001", "TV", new BigDecimal("1299.99"), 5);
         CartItem itemToAdd = testProduct.toCartItem(new NoConfiguration(), 1);
+        OrderLine orderLine = new OrderLine(itemToAdd);
 
         List<CartItem> modifiableList = new ArrayList<>();
         modifiableList.add(item);
@@ -78,10 +77,27 @@ class OrderTest {
         Order order = new Order("1", testCustomer, modifiableList, new BigDecimal("299.99"));
 
         // when & then
-        assertThatThrownBy(() -> order.getOrderedItems().add(itemToAdd))
+        assertThatThrownBy(() -> order.getOrderedItems().add(orderLine))
                 .isInstanceOf(UnsupportedOperationException.class);
 
         modifiableList.add(itemToAdd);
         assertThat(order.getOrderedItems()).hasSize(1);
+    }
+
+    @Test
+    void shouldNotChangeOrderDetailWhenChangingCustomerData() {
+        // given
+        Customer testCustomer = createTestCustomer();
+        Product testProduct = new Electronics("000", "Keyboard", new BigDecimal("299.99"), 10);
+        CartItem item = testProduct.toCartItem(new NoConfiguration(), 1);
+        List<CartItem> items = List.of(item);
+        Order order = new Order("1", testCustomer, items, new BigDecimal("299.99"));
+
+        // when
+        testCustomer.setFirstName("Tomasz");
+
+        // then
+        assertThat(testCustomer.getFirstName()).isEqualTo("Tomasz");
+        assertThat(order.getCustomerFirstName()).isEqualTo("Adrian");
     }
 }

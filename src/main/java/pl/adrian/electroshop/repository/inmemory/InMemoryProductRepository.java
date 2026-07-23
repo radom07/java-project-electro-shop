@@ -1,6 +1,7 @@
-package pl.adrian.electroshop.repository;
+package pl.adrian.electroshop.repository.inmemory;
 
 import pl.adrian.electroshop.model.product.Product;
+import pl.adrian.electroshop.repository.ProductRepository;
 
 import java.util.List;
 import java.util.Map;

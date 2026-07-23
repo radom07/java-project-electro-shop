@@ -1,11 +1,14 @@
 package pl.adrian.electroshop.service;
 
 import pl.adrian.electroshop.model.cart.Cart;
+import pl.adrian.electroshop.model.customer.Customer;
+import pl.adrian.electroshop.model.order.Order;
 import pl.adrian.electroshop.model.product.CartItem;
 import pl.adrian.electroshop.model.product.Product;
 import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 
 import java.util.List;
+import java.util.UUID;
 
 public class CartService {
     private final ProductManager productManager;
@@ -36,16 +39,15 @@ public class CartService {
         return cart.getItems();
     }
 
-    /*
-     Finalizuje zamówienie: weryfikuje dostępność wszystkich pozycji, aktualizuje stany magazynowe i czyści koszyk.
-     Task 5: utworzenie i zwrócenie obiektu Order na podstawie cart.getItems() i cart.getTotal(), zanim koszyk zostanie wyczyszczony.
-     */
-    public void placeOrder() {
+    public Order placeOrder(Customer customer) {
+        if (customer == null) {
+            throw new IllegalArgumentException("Customer cannot be null");
+        }
         if (cart.isEmpty()) {
             throw new IllegalStateException("Cart is empty");
         }
 
-        // Walidacja dostępności wszystkich pozycji przed modyfikacją stanu magazynowego
+        // Walidacja dostępności wszystkich pozycji przed jakąkolwiek modyfikacją stanu
         for (CartItem item : cart.getItems()) {
             Product product = productManager.getProduct(item.getProductId())
                     .orElseThrow(() -> new IllegalStateException(
@@ -62,7 +64,16 @@ public class CartService {
             productManager.updateProduct(product);
         }
 
+        Order order = new Order(
+                UUID.randomUUID().toString(),
+                customer,
+                cart.getItems(),
+                cart.getTotal()
+        );
+
         cart.clear();
+
+        return order;
     }
 }
 

@@ -3,10 +3,11 @@ package pl.adrian.electroshop.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.adrian.electroshop.model.cart.Cart;
+import pl.adrian.electroshop.model.customer.Customer;
+import pl.adrian.electroshop.model.order.Order;
 import pl.adrian.electroshop.model.product.Electronics;
 import pl.adrian.electroshop.model.product.Product;
 import pl.adrian.electroshop.model.product.configuration.NoConfiguration;
@@ -28,34 +29,30 @@ class CartServiceTest {
     private CartService cartService;
 
     private Product cable;
+    private Customer customer;
 
     @BeforeEach
     void setUp() {
-        // given
         cart = new Cart();
         cartService = new CartService(productManager, cart);
         cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 10);
+        customer = new Customer("CU1", "Jan", "Kowalski", "jan.kowalski@test.pl");
     }
 
     @Test
     void shouldAddProductToCartWhenStockIsSufficient() {
-        // given
         when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
 
-        // when
         cartService.addToCart("E1", new NoConfiguration(), 3);
 
-        // then
         assertThat(cart.getItems()).hasSize(1);
         assertThat(cart.getItems().get(0).getQuantity()).isEqualTo(3);
     }
 
     @Test
     void shouldThrowExceptionWhenProductDoesNotExist() {
-        // given
         when(productManager.getProduct("E1")).thenReturn(Optional.empty());
 
-        // when & then
         assertThatThrownBy(() -> cartService.addToCart("E1", new NoConfiguration(), 1))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Product not found");
@@ -63,10 +60,8 @@ class CartServiceTest {
 
     @Test
     void shouldThrowExceptionWhenStockIsInsufficient() {
-        // given
         when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
 
-        // when & then
         assertThatThrownBy(() -> cartService.addToCart("E1", new NoConfiguration(), 20))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Not enough stock");
@@ -76,13 +71,10 @@ class CartServiceTest {
 
     @Test
     void shouldAccountForQuantityAlreadyInCartWhenCheckingStock() {
-        // given
         when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
 
-        // when
         cartService.addToCart("E1", new NoConfiguration(), 7);
 
-        // then
         assertThatThrownBy(() -> cartService.addToCart("E1", new NoConfiguration(), 5))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Not enough stock");
@@ -90,51 +82,67 @@ class CartServiceTest {
 
     @Test
     void shouldReturnCartItemsWhenViewingCart() {
-        // given
         when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
-
-        // when
         cartService.addToCart("E1", new NoConfiguration(), 2);
 
-        // then
         assertThat(cartService.viewCart()).hasSize(1);
     }
 
     @Test
+    void shouldThrowExceptionWhenPlacingOrderWithNullCustomer() {
+        assertThatThrownBy(() -> cartService.placeOrder(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Customer cannot be null");
+    }
+
+    @Test
     void shouldThrowExceptionWhenPlacingOrderWithEmptyCart() {
-        // when && then
-        assertThatThrownBy(() -> cartService.placeOrder())
+        assertThatThrownBy(() -> cartService.placeOrder(customer))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Cart is empty");
     }
 
     @Test
-    void shouldReduceStockAndClearCartWhenPlacingOrder() {
-        // given
+    void shouldCreateOrderAndReduceStockAndClearCartWhenPlacingOrder() {
         when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
         cartService.addToCart("E1", new NoConfiguration(), 3);
 
-        // when
-        cartService.placeOrder();
+        Order order = cartService.placeOrder(customer);
 
-        // then
+        assertThat(order).isNotNull();
+        assertThat(order.getOrderId()).isNotBlank();
+        assertThat(order.getCustomerId()).isEqualTo("CU1");
+        assertThat(order.getOrderedItems()).hasSize(1);
+        assertThat(order.getTotalAmount()).isEqualByComparingTo("149.97"); // 49.99 * 3
+
         assertThat(cable.getQuantity()).isEqualTo(7); // 10 - 3
         verify(productManager, times(1)).updateProduct(cable);
         assertThat(cart.isEmpty()).isTrue();
     }
 
     @Test
+    void shouldGenerateDifferentOrderIdsForConsecutiveOrdersFromSameCart() {
+        when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
+
+        cartService.addToCart("E1", new NoConfiguration(), 1);
+        Order firstOrder = cartService.placeOrder(customer);
+
+        cable.setQuantity(cable.getQuantity() + 5); // uzupełnienie stanu magazynowego
+        cartService.addToCart("E1", new NoConfiguration(), 1);
+        Order secondOrder = cartService.placeOrder(customer);
+
+        assertThat(firstOrder.getOrderId()).isNotEqualTo(secondOrder.getOrderId());
+    }
+
+    @Test
     void shouldThrowExceptionWhenPlacingOrderAndStockBecameInsufficient() {
-        // given
         when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
         cartService.addToCart("E1", new NoConfiguration(), 3);
 
         // Symulacja: stan magazynowy spadł po dodaniu do koszyka, przed złożeniem zamówienia
-        // when
         cable.setQuantity(1);
 
-        // then
-        assertThatThrownBy(() -> cartService.placeOrder())
+        assertThatThrownBy(() -> cartService.placeOrder(customer))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Not enough stock");
 
@@ -144,15 +152,13 @@ class CartServiceTest {
 
     @Test
     void shouldThrowExceptionWhenPlacingOrderAndProductWasRemoved() {
-        // given
         when(productManager.getProduct("E1"))
                 .thenReturn(Optional.of(cable))  // podczas addToCart
                 .thenReturn(Optional.empty());   // podczas placeOrder - produkt usunięty z magazynu
 
         cartService.addToCart("E1", new NoConfiguration(), 2);
 
-        // when & then
-        assertThatThrownBy(() -> cartService.placeOrder())
+        assertThatThrownBy(() -> cartService.placeOrder(customer))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Product no longer available");
     }
