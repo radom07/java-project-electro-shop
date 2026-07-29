@@ -9,6 +9,7 @@ import pl.adrian.electroshop.model.product.configuration.NoConfiguration;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,7 +21,7 @@ class InvoiceTest {
         Customer customer = new Customer("CU1", "Jan", "Kowalski", "jan.kowalski@test.pl");
         Electronics cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 100);
         CartItem cartItem = cable.toCartItem(new NoConfiguration(), 2);
-        return new Order("OR1", customer, List.of(cartItem), new BigDecimal("99.98"));
+        return new Order("OR1", LocalDateTime.now(), customer, List.of(cartItem), new BigDecimal("99.98"));
     }
 
     @Test

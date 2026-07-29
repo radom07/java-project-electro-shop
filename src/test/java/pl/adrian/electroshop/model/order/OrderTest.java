@@ -8,6 +8,7 @@ import pl.adrian.electroshop.model.product.Product;
 import pl.adrian.electroshop.model.product.configuration.NoConfiguration;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +30,7 @@ class OrderTest {
         List<CartItem> items = List.of(item);
 
         // when
-        Order order = new Order("1", testCustomer, items, new BigDecimal("299.99"));
+        Order order = new Order("1", LocalDateTime.now(), testCustomer, items, new BigDecimal("299.99"));
 
         // then
         assertThat(order.getOrderId()).isEqualTo("1");
@@ -44,7 +45,7 @@ class OrderTest {
         List<CartItem> emptyItems = List.of();
 
         // when & then
-        assertThatThrownBy(() -> new Order("1", testCustomer, emptyItems, new BigDecimal("0.00")))
+        assertThatThrownBy(() -> new Order("1", LocalDateTime.now(), testCustomer, emptyItems, new BigDecimal("0.00")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Cannot create order with empty cart.");
     }
@@ -56,7 +57,7 @@ class OrderTest {
         CartItem item = testProduct.toCartItem(new NoConfiguration(), 1);
 
         // when & then
-        assertThatThrownBy(() -> new Order("1", null, List.of(item), new BigDecimal("299.99")))
+        assertThatThrownBy(() -> new Order("1", LocalDateTime.now(), null, List.of(item), new BigDecimal("299.99")))
                 .isInstanceOf(NullPointerException.class);
     }
 
@@ -74,7 +75,7 @@ class OrderTest {
         List<CartItem> modifiableList = new ArrayList<>();
         modifiableList.add(item);
 
-        Order order = new Order("1", testCustomer, modifiableList, new BigDecimal("299.99"));
+        Order order = new Order("1", LocalDateTime.now(), testCustomer, modifiableList, new BigDecimal("299.99"));
 
         // when & then
         assertThatThrownBy(() -> order.getOrderedItems().add(orderLine))
@@ -91,7 +92,7 @@ class OrderTest {
         Product testProduct = new Electronics("000", "Keyboard", new BigDecimal("299.99"), 10);
         CartItem item = testProduct.toCartItem(new NoConfiguration(), 1);
         List<CartItem> items = List.of(item);
-        Order order = new Order("1", testCustomer, items, new BigDecimal("299.99"));
+        Order order = new Order("1", LocalDateTime.now(), testCustomer, items, new BigDecimal("299.99"));
 
         // when
         testCustomer.setFirstName("Tomasz");
@@ -99,5 +100,32 @@ class OrderTest {
         // then
         assertThat(testCustomer.getFirstName()).isEqualTo("Tomasz");
         assertThat(order.getCustomerFirstName()).isEqualTo("Adrian");
+    }
+
+    @Test
+    void shouldPlacedAtExactly() {
+        // given
+        Customer testCustomer = createTestCustomer();
+        Product testProduct = new Electronics("000", "Keyboard", new BigDecimal("299.99"), 10);
+        CartItem item = testProduct.toCartItem(new NoConfiguration(), 1);
+        LocalDateTime placedAt = LocalDateTime.of(2026, 7, 29, 23, 34);
+
+        // when
+        Order order = new Order("1", placedAt, testCustomer, List.of(item), new BigDecimal("299.99"));
+
+        // then
+        assertThat(order.getPlacedAt()).isEqualTo(placedAt);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenPlacedAtIsNull() {
+        // given
+        Customer testCustomer = createTestCustomer();
+        Product testProduct = new Electronics("000", "Keyboard", new BigDecimal("299.99"), 10);
+        CartItem item = testProduct.toCartItem(new NoConfiguration(), 1);
+
+        // when & then
+        assertThatThrownBy(() -> new Order("1", null, testCustomer, List.of(item), new BigDecimal("299.99")))
+                .isInstanceOf(NullPointerException.class);
     }
 }

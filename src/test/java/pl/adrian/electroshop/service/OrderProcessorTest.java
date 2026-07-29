@@ -18,6 +18,7 @@ import pl.adrian.electroshop.repository.OrderRepository;
 import pl.adrian.electroshop.service.invoice.InvoiceNumberGenerator;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,7 +54,7 @@ class OrderProcessorTest {
         Customer customer = new Customer("CU1", "Jan", "Kowalski", "jan.kowalski@test.pl");
         CartItem cartItem = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 10)
                 .toCartItem(new NoConfiguration(), 3);
-        order = new Order("OR1", customer, List.of(cartItem), new BigDecimal("149.97"));
+        order = new Order("OR1", LocalDateTime.now(), customer, List.of(cartItem), new BigDecimal("149.97"));
     }
 
     // processOrder
