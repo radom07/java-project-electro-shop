@@ -5,6 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pl.adrian.electroshop.exception.InvalidOrderStatusTransitionException;
+import pl.adrian.electroshop.exception.OrderNotFoundException;
+import pl.adrian.electroshop.exception.ProductNotFoundException;
 import pl.adrian.electroshop.model.customer.Customer;
 import pl.adrian.electroshop.model.invoice.Invoice;
 import pl.adrian.electroshop.model.order.Order;
@@ -118,7 +121,7 @@ class OrderProcessorTest {
 
         // when & then
         assertThatThrownBy(() -> orderProcessor.changeOrderStatus("MISSING", OrderStatus.PAID))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(OrderNotFoundException.class)
                 .hasMessageContaining("Order not found");
     }
 
@@ -129,7 +132,7 @@ class OrderProcessorTest {
 
         // when & then
         assertThatThrownBy(() -> orderProcessor.changeOrderStatus("OR1", OrderStatus.SHIPPED))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(InvalidOrderStatusTransitionException.class)
                 .hasMessageContaining("Cannot change order status");
 
         verify(orderRepository, never()).save(any());
@@ -170,7 +173,7 @@ class OrderProcessorTest {
 
         // when & then
         assertThatThrownBy(() -> orderProcessor.cancelOrder("MISSING"))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(OrderNotFoundException.class)
                 .hasMessageContaining("Order not found");
     }
 
@@ -182,7 +185,7 @@ class OrderProcessorTest {
 
         // when & then
         assertThatThrownBy(() -> orderProcessor.cancelOrder("OR1"))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(InvalidOrderStatusTransitionException.class)
                 .hasMessageContaining("invoice correction is required");
 
         verify(productManager, never()).updateProduct(any());
@@ -198,7 +201,7 @@ class OrderProcessorTest {
 
         // when & then
         assertThatThrownBy(() -> orderProcessor.cancelOrder("OR1"))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(InvalidOrderStatusTransitionException.class)
                 .hasMessageContaining("Cannot cancel order in status: SHIPPED");
 
         verify(productManager, never()).updateProduct(any());
@@ -212,8 +215,8 @@ class OrderProcessorTest {
 
         // when & then
         assertThatThrownBy(() -> orderProcessor.cancelOrder("OR1"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Product no longer exists");
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessageContaining("Product not found");
 
         verify(productManager, never()).updateProduct(any());
         verify(orderRepository, never()).save(any());

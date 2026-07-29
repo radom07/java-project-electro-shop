@@ -1,5 +1,6 @@
 package pl.adrian.electroshop.model.product;
 
+import pl.adrian.electroshop.exception.InvalidProductConfigurationException;
 import pl.adrian.electroshop.model.product.configuration.ComputerConfiguration;
 import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 
@@ -30,13 +31,13 @@ public class Computer extends Product {
     @Override
     public void validateConfiguration(ProductConfiguration configuration) {
         if (!(configuration instanceof ComputerConfiguration cc)) {
-            throw new IllegalArgumentException("Invalid configuration type for Computer: " + getId());
+            throw new InvalidProductConfigurationException("Invalid configuration type for Computer: " + getId());
         }
         if (!availableCpus.contains(cc.cpu())) {
-            throw new IllegalArgumentException("Processor " + cc.cpu() + " is not available for this computer model.");
+            throw new InvalidProductConfigurationException("Processor " + cc.cpu() + " is not available for this computer model.");
         }
         if (!availableRamOptions.contains(cc.ram())) {
-            throw new IllegalArgumentException("Amount of RAM " + cc.ram() + " GB is not available for this computer model.");
+            throw new InvalidProductConfigurationException("Amount of RAM " + cc.ram() + " GB is not available for this computer model.");
         }
     }
 

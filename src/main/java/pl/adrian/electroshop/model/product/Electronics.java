@@ -1,5 +1,6 @@
 package pl.adrian.electroshop.model.product;
 
+import pl.adrian.electroshop.exception.InvalidProductConfigurationException;
 import pl.adrian.electroshop.model.product.configuration.NoConfiguration;
 import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 
@@ -14,7 +15,7 @@ public class Electronics extends Product {
     @Override
     public void validateConfiguration(ProductConfiguration configuration) {
         if (!(configuration instanceof NoConfiguration)) {
-            throw new IllegalArgumentException("Electronics product does not support configuration: " + getId());
+            throw new InvalidProductConfigurationException("Electronics product does not support configuration: " + getId());
         }
     }
 

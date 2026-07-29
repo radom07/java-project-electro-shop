@@ -2,6 +2,7 @@ package pl.adrian.electroshop.model.product;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pl.adrian.electroshop.exception.InvalidProductConfigurationException;
 import pl.adrian.electroshop.model.product.configuration.ComputerConfiguration;
 import pl.adrian.electroshop.model.product.configuration.NoConfiguration;
 import pl.adrian.electroshop.model.product.configuration.SmartphoneConfiguration;
@@ -49,7 +50,7 @@ class ComputerTest {
     void shouldThrowExceptionWhenValidatingInvalidCpu() {
         // when & then
         assertThatThrownBy(() -> computer.validateConfiguration(new ComputerConfiguration("AMD Ryzen 9", 16)))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidProductConfigurationException.class)
                 .hasMessageContaining("Processor AMD Ryzen 9 is not available");
     }
 
@@ -57,7 +58,7 @@ class ComputerTest {
     void shouldThrowExceptionWhenValidatingInvalidRam() {
         // when & then
         assertThatThrownBy(() -> computer.validateConfiguration(new ComputerConfiguration("Intel i7", 64)))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidProductConfigurationException.class)
                 .hasMessageContaining("Amount of RAM 64 GB is not available");
     }
 
@@ -65,12 +66,12 @@ class ComputerTest {
     void shouldThrowExceptionWhenConfigurationTypeDoesNotMatch() {
         // when & then
         assertThatThrownBy(() -> computer.validateConfiguration(new NoConfiguration()))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidProductConfigurationException.class)
                 .hasMessageContaining("Invalid configuration type for Computer");
 
         assertThatThrownBy(() -> computer.validateConfiguration(
                 new SmartphoneConfiguration("Black", 4000, List.of())))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidProductConfigurationException.class)
                 .hasMessageContaining("Invalid configuration type for Computer");
     }
 
@@ -91,6 +92,6 @@ class ComputerTest {
     void shouldNotCreateCartItemWhenConfigurationIsInvalid() {
         // when & then
         assertThatThrownBy(() -> computer.toCartItem(new ComputerConfiguration("AMD Ryzen 9", 16), 1))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(InvalidProductConfigurationException.class);
     }
 }
