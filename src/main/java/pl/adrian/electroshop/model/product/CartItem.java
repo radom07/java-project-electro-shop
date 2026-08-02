@@ -1,9 +1,11 @@
 package pl.adrian.electroshop.model.product;
 
+import lombok.Getter;
 import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 
 import java.math.BigDecimal;
 
+@Getter
 public class CartItem {
     private final String productId;
     private final String productName;
@@ -21,26 +23,6 @@ public class CartItem {
         this.unitPrice = unitPrice;
         this.configuration = configuration;
         this.quantity = quantity;
-    }
-
-    public String getProductId() {
-        return productId;
-    }
-
-    public String getProductName() {
-        return productName;
-    }
-
-    public BigDecimal getUnitPrice() {
-        return unitPrice;
-    }
-
-    public ProductConfiguration getConfiguration() {
-        return configuration;
-    }
-
-    public int getQuantity() {
-        return quantity;
     }
 
     public void setQuantity(int quantity) {

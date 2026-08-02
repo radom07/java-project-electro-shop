@@ -1,5 +1,6 @@
 package pl.adrian.electroshop.cli;
 
+import lombok.RequiredArgsConstructor;
 import pl.adrian.electroshop.model.order.Order;
 import pl.adrian.electroshop.model.order.OrderStatus;
 import pl.adrian.electroshop.model.product.Computer;
@@ -15,20 +16,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 public class EmployeeMenu {
 
     private final ConsoleReader reader;
     private final ProductManager productManager;
     private final OrderRepository orderRepository;
     private final OrderProcessor orderProcessor;
-
-    public EmployeeMenu(ConsoleReader reader, ProductManager productManager,
-                        OrderRepository orderRepository, OrderProcessor orderProcessor) {
-        this.reader = reader;
-        this.productManager = productManager;
-        this.orderRepository = orderRepository;
-        this.orderProcessor = orderProcessor;
-    }
 
     public void show() {
         boolean back = false;

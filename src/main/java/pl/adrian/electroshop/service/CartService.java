@@ -1,5 +1,7 @@
 package pl.adrian.electroshop.service;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import pl.adrian.electroshop.exception.InsufficientStockException;
 import pl.adrian.electroshop.exception.ProductNotFoundException;
 import pl.adrian.electroshop.model.cart.Cart;
@@ -13,14 +15,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 public class CartService {
-    private final ProductManager productManager;
-    private final Cart cart;
 
-    public CartService(ProductManager productManager, Cart cart) {
-        this.productManager = productManager;
-        this.cart = cart;
-    }
+    @NonNull private final ProductManager productManager;
+    @NonNull private final Cart cart;
 
     public void addToCart(String productId, ProductConfiguration configuration, int quantity) {
         Product product = productManager.getProduct(productId)

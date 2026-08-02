@@ -1,5 +1,7 @@
 package pl.adrian.electroshop.model.product;
 
+import lombok.Getter;
+import lombok.NonNull;
 import pl.adrian.electroshop.exception.InvalidProductConfigurationException;
 import pl.adrian.electroshop.model.product.configuration.ComputerConfiguration;
 import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
@@ -7,25 +9,19 @@ import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 import java.math.BigDecimal;
 import java.util.List;
 
+@Getter
 public class Computer extends Product {
     private final List<String> availableCpus;
     private final List<Integer> availableRamOptions; // GB
 
     public Computer(String id, String name, BigDecimal price, int quantity,
-                    List<String> availableCpus, List<Integer> availableRamOptions) {
+                    @NonNull List<String> availableCpus,
+                    @NonNull List<Integer> availableRamOptions) {
 
         super(id, name, price, quantity);
 
         this.availableCpus = availableCpus;
         this.availableRamOptions = availableRamOptions;
-    }
-
-    public List<String> getAvailableCpus() {
-        return availableCpus;
-    }
-
-    public List<Integer> getAvailableRamOptions() {
-        return availableRamOptions;
     }
 
     @Override
