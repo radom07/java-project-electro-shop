@@ -17,7 +17,7 @@ public abstract class Product {
     public Product(@NonNull String id,
                    @NonNull String name,
                    @NonNull BigDecimal price,
-                   @NonNull int quantity) {
+                   int quantity) {
         this.id = id;
         this.name = name;
         this.price = price;

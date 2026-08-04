@@ -11,7 +11,7 @@ import pl.adrian.electroshop.model.product.Electronics;
 import pl.adrian.electroshop.model.product.configuration.NoConfiguration;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,7 +29,7 @@ class OrderFileSerializerTest {
         Electronics cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 100);
         CartItem cartItem = cable.toCartItem(new NoConfiguration(), 2);
 
-        sampleOrder = new Order("OR1", LocalDateTime.of(2026, 8, 3, 12, 0), customer, List.of(cartItem), new BigDecimal("99.98"));
+        sampleOrder = new Order("OR1", Instant.parse("2026-08-03T12:00:00Z"), customer, List.of(cartItem), new BigDecimal("99.98"));
     }
 
     @Test
@@ -52,7 +52,7 @@ class OrderFileSerializerTest {
         // given
         List<String> lines = List.of(
                 "orderId=OR1",
-                "placedAt=2026-08-03T12:00",
+                "placedAt=2026-08-04T10:00:00Z",
                 "customerId=CU1",
                 "customerFirstName=Jan",
                 "customerLastName=Kowalski",

@@ -10,6 +10,7 @@ import pl.adrian.electroshop.model.product.Electronics;
 import pl.adrian.electroshop.model.product.configuration.NoConfiguration;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,7 +31,7 @@ class InMemoryInvoiceRepositoryTest {
         Customer customer = new Customer("CU1", "Jan", "Kowalski", "jan.kowalski@test.pl");
         Electronics cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 100);
         CartItem cartItem = cable.toCartItem(new NoConfiguration(), 2);
-        Order order = new Order("OR1", LocalDateTime.now(), customer, List.of(cartItem), new BigDecimal("99.98"));
+        Order order = new Order("OR1", Instant.now(), customer, List.of(cartItem), new BigDecimal("99.98"));
 
         sampleInvoice = new Invoice("FV/2026/07/1", LocalDate.of(2026, 7, 21), order);
     }
@@ -53,7 +54,7 @@ class InMemoryInvoiceRepositoryTest {
         Customer customer = new Customer("CU2", "Anna", "Nowak", "anna.nowak@test.pl");
         Electronics cable = new Electronics("E2", "HDMI Cable", new BigDecimal("29.99"), 50);
         CartItem cartItem = cable.toCartItem(new NoConfiguration(), 1);
-        Order updatedOrder = new Order("OR2", LocalDateTime.now(), customer, List.of(cartItem), new BigDecimal("29.99"));
+        Order updatedOrder = new Order("OR2", Instant.now(), customer, List.of(cartItem), new BigDecimal("29.99"));
         Invoice updatedInvoice = new Invoice("FV/2026/07/1", LocalDate.of(2026, 7, 22), updatedOrder);
 
         // when
@@ -96,7 +97,7 @@ class InMemoryInvoiceRepositoryTest {
         Customer customer = new Customer("CU2", "Anna", "Nowak", "anna.nowak@test.pl");
         Electronics cable = new Electronics("E2", "HDMI Cable", new BigDecimal("29.99"), 50);
         CartItem cartItem = cable.toCartItem(new NoConfiguration(), 1);
-        Order secondOrder = new Order("OR2", LocalDateTime.now(), customer, List.of(cartItem), new BigDecimal("29.99"));
+        Order secondOrder = new Order("OR2", Instant.now(), customer, List.of(cartItem), new BigDecimal("29.99"));
         Invoice secondInvoice = new Invoice("FV/2026/07/2", LocalDate.of(2026, 7, 21), secondOrder);
 
         repository.save(sampleInvoice);

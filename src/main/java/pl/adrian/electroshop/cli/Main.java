@@ -26,6 +26,8 @@ import pl.adrian.electroshop.service.invoice.SequentialInvoiceNumberGenerator;
 
 import java.math.BigDecimal;
 import java.nio.file.Path;
+import java.time.Clock;
+import java.time.ZoneId;
 import java.util.List;
 
 public class Main {
@@ -56,19 +58,21 @@ public class Main {
             System.out.println("--> Wybrano zapis w pamięci.");
         }
 
-        // Klienci i produkty zawsze w pamięci
         ProductRepository productRepository = new InMemoryProductRepository();
         CustomerRepository customerRepository = new InMemoryCustomerRepository();
 
+        Clock systemClock = Clock.systemUTC();
+        Clock accountingClock = systemClock.withZone(ZoneId.of("Europe/Warsaw"));
+
         ProductManager productManager = new ProductManager(productRepository);
         CustomerManager customerManager = new CustomerManager(customerRepository);
-        InvoiceNumberGenerator invoiceNumberGenerator = new SequentialInvoiceNumberGenerator();
+        InvoiceNumberGenerator invoiceNumberGenerator = new SequentialInvoiceNumberGenerator(accountingClock);
 
-        OrderProcessor orderProcessor =
-                new OrderProcessor(orderRepository, invoiceRepository, invoiceNumberGenerator, productManager);
+        OrderProcessor orderProcessor = new OrderProcessor(
+                orderRepository, invoiceRepository, invoiceNumberGenerator, productManager, accountingClock);
 
         Cart cart = new Cart();
-        CartService cartService = new CartService(productManager, cart);
+        CartService cartService = new CartService(productManager, cart, systemClock);
 
         seedSampleProducts(productManager);
 

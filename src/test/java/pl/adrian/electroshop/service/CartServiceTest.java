@@ -15,6 +15,9 @@ import pl.adrian.electroshop.model.product.Product;
 import pl.adrian.electroshop.model.product.configuration.NoConfiguration;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +30,7 @@ class CartServiceTest {
     @Mock
     private ProductManager productManager;
 
+    private Clock fixedClock;
     private Cart cart;
     private CartService cartService;
 
@@ -36,7 +40,8 @@ class CartServiceTest {
     @BeforeEach
     void setUp() {
         cart = new Cart();
-        cartService = new CartService(productManager, cart);
+        fixedClock = Clock.fixed(Instant.parse("2026-08-04T10:00:00Z"), ZoneId.of("UTC"));
+        cartService = new CartService(productManager, cart, fixedClock);
         cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 10);
         customer = new Customer("CU1", "Jan", "Kowalski", "jan.kowalski@test.pl");
     }
