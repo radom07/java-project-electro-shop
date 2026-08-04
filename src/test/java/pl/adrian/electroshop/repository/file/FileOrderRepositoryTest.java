@@ -47,7 +47,7 @@ class FileOrderRepositoryTest {
         Electronics cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 100);
         CartItem cartItem = cable.toCartItem(new NoConfiguration(), 2);
 
-        sampleOrder = new Order("OR1", Instant.now(), customer, List.of(cartItem), new BigDecimal("99.98"));
+        sampleOrder = new Order("OR1", Instant.now(), customer, List.of(cartItem), new BigDecimal("99.98"), BigDecimal.ZERO);
     }
 
     @Test

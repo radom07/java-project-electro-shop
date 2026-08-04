@@ -11,9 +11,9 @@ import pl.adrian.electroshop.model.product.CartItem;
 import pl.adrian.electroshop.model.product.Product;
 import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,6 +23,7 @@ public class CartService {
     @NonNull private final ProductManager productManager;
     @NonNull private final Cart cart;
     @NonNull private final Clock clock;
+    @NonNull private final DiscountService discountService;
 
     public void addToCart(String productId, ProductConfiguration configuration, int quantity) {
         Product product = productManager.getProduct(productId)
@@ -45,6 +46,10 @@ public class CartService {
     }
 
     public Order placeOrder(Customer customer) {
+        return placeOrder(customer, null);
+    }
+
+    public Order placeOrder(Customer customer, String discountCode) {
         if (customer == null) {
             throw new IllegalArgumentException("Customer cannot be null");
         }
@@ -66,6 +71,11 @@ public class CartService {
             productManager.updateProduct(product);
         }
 
+        BigDecimal subtotal = cart.getTotal();
+        BigDecimal discountPercentage = discountService.getDiscountPercentage(discountCode)
+                .orElse(BigDecimal.ZERO);
+        BigDecimal discountAmount = subtotal.multiply(discountPercentage);
+
         Instant placedAt = Instant.now(clock);
 
         Order order = new Order(
@@ -73,7 +83,8 @@ public class CartService {
                 placedAt,
                 customer,
                 cart.getItems(),
-                cart.getTotal()
+                subtotal,
+                discountAmount
         );
 
         cart.clear();

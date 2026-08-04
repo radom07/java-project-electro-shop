@@ -32,6 +32,7 @@ class CartServiceTest {
 
     private Clock fixedClock;
     private Cart cart;
+    private DiscountService discountService;
     private CartService cartService;
 
     private Product cable;
@@ -41,7 +42,8 @@ class CartServiceTest {
     void setUp() {
         cart = new Cart();
         fixedClock = Clock.fixed(Instant.parse("2026-08-04T10:00:00Z"), ZoneId.of("UTC"));
-        cartService = new CartService(productManager, cart, fixedClock);
+        discountService = new DiscountService();
+        cartService = new CartService(productManager, cart, fixedClock, discountService);
         cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 10);
         customer = new Customer("CU1", "Jan", "Kowalski", "jan.kowalski@test.pl");
     }
@@ -120,6 +122,8 @@ class CartServiceTest {
         assertThat(order.getOrderId()).isNotBlank();
         assertThat(order.getCustomerId()).isEqualTo("CU1");
         assertThat(order.getOrderedItems()).hasSize(1);
+        assertThat(order.getSubtotal()).isEqualByComparingTo("149.97");
+        assertThat(order.getDiscountAmount()).isEqualByComparingTo("0.00");
         assertThat(order.getTotalAmount()).isEqualByComparingTo("149.97"); // 49.99 * 3
 
         assertThat(cable.getQuantity()).isEqualTo(7); // 10 - 3
@@ -168,5 +172,31 @@ class CartServiceTest {
         assertThatThrownBy(() -> cartService.placeOrder(customer))
                 .isInstanceOf(ProductNotFoundException.class)
                 .hasMessageContaining("Product not found");
+    }
+
+    @Test
+    void shouldCalculateDiscountWhenValidDiscountCodeProvided() {
+        when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
+        cartService.addToCart("E1", new NoConfiguration(), 2); // 49.99 * 2 = 99.98
+
+        Order order = cartService.placeOrder(customer, "WELCOME10");
+
+        // 10% rabatu od 100 zł
+        assertThat(order.getSubtotal()).isEqualByComparingTo("99.98");
+        assertThat(order.getDiscountAmount()).isEqualByComparingTo("9.998");
+        assertThat(order.getTotalAmount()).isEqualByComparingTo("89.982");
+    }
+
+    @Test
+    void shouldApplyZeroDiscountWhenInvalidDiscountCodeProvided() {
+        when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
+        cartService.addToCart("E1", new NoConfiguration(), 2);
+
+        Order order = cartService.placeOrder(customer, "FAKECODE");
+
+        // Brak rabatu
+        assertThat(order.getSubtotal()).isEqualByComparingTo("99.98");
+        assertThat(order.getDiscountAmount()).isEqualByComparingTo("0.00");
+        assertThat(order.getTotalAmount()).isEqualByComparingTo("99.98");
     }
 }

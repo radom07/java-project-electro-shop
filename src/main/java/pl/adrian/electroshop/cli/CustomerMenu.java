@@ -122,11 +122,14 @@ public class CustomerMenu {
         String lastName = readNonBlank("Nazwisko: ");
         String email = readNonBlank("E-mail: ");
 
+        System.out.print("Kod promocyjny (Enter, jeśli brak): ");
+        String discountCode = reader.readLine();
+
         Customer customer = new Customer(id, firstName, lastName, email);
 
         try {
             customerManager.addCustomer(customer);
-            Order order = cartService.placeOrder(customer);
+            Order order = cartService.placeOrder(customer, discountCode);
             Invoice invoice = orderProcessor.processOrder(order);
             myOrders.add(order);
 

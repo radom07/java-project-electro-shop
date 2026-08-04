@@ -17,10 +17,7 @@ import pl.adrian.electroshop.repository.inmemory.InMemoryCustomerRepository;
 import pl.adrian.electroshop.repository.inmemory.InMemoryInvoiceRepository;
 import pl.adrian.electroshop.repository.inmemory.InMemoryOrderRepository;
 import pl.adrian.electroshop.repository.inmemory.InMemoryProductRepository;
-import pl.adrian.electroshop.service.CartService;
-import pl.adrian.electroshop.service.CustomerManager;
-import pl.adrian.electroshop.service.OrderProcessor;
-import pl.adrian.electroshop.service.ProductManager;
+import pl.adrian.electroshop.service.*;
 import pl.adrian.electroshop.service.invoice.InvoiceNumberGenerator;
 import pl.adrian.electroshop.service.invoice.SequentialInvoiceNumberGenerator;
 
@@ -72,7 +69,8 @@ public class Main {
                 orderRepository, invoiceRepository, invoiceNumberGenerator, productManager, accountingClock);
 
         Cart cart = new Cart();
-        CartService cartService = new CartService(productManager, cart, systemClock);
+        DiscountService discountService = new DiscountService();
+        CartService cartService = new CartService(productManager, cart, systemClock, discountService);
 
         seedSampleProducts(productManager);
 
