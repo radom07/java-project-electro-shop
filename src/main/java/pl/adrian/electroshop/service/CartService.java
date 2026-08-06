@@ -14,16 +14,21 @@ import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @RequiredArgsConstructor
 public class CartService {
 
-    @NonNull private final ProductManager productManager;
-    @NonNull private final Cart cart;
-    @NonNull private final Clock clock;
-    @NonNull private final DiscountService discountService;
+    @NonNull
+    private final ProductManager productManager;
+    @NonNull
+    private final Cart cart;
+    @NonNull
+    private final Clock clock;
+    @NonNull
+    private final DiscountService discountService;
 
     public void addToCart(String productId, ProductConfiguration configuration, int quantity) {
         Product product = productManager.getProduct(productId)
@@ -57,20 +62,19 @@ public class CartService {
             throw new IllegalStateException("Cart is empty");
         }
 
-        for (CartItem item : cart.getItems()) {
-            Product product = productManager.getProduct(item.getProductId())
-                    .orElseThrow(() -> new ProductNotFoundException(item.getProductId()));
-            if (product.getQuantity() < item.getQuantity()) {
-                throw new InsufficientStockException(product.getId());
+        List<CartItem> items = cart.getItems();
+        List<CartItem> reserved = new ArrayList<>();
+        try {
+            for (CartItem item : items) {
+                productManager.reserveStock(item.getProductId(), item.getQuantity());
+                reserved.add(item);
             }
+        } catch (RuntimeException e) {
+            for (CartItem item : reserved) {
+                productManager.releaseStock(item.getProductId(), item.getQuantity());
+            }
+            throw e;
         }
-
-        for (CartItem item : cart.getItems()) {
-            Product product = productManager.getProduct(item.getProductId()).orElseThrow();
-            product.setQuantity(product.getQuantity() - item.getQuantity());
-            productManager.updateProduct(product);
-        }
-
         BigDecimal subtotal = cart.getTotal();
         BigDecimal discountPercentage = discountService.getDiscountPercentage(discountCode)
                 .orElse(BigDecimal.ZERO);

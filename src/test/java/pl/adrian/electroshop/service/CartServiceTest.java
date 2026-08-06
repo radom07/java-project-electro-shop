@@ -50,18 +50,23 @@ class CartServiceTest {
 
     @Test
     void shouldAddProductToCartWhenStockIsSufficient() {
+        // given
         when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
 
+        // when
         cartService.addToCart("E1", new NoConfiguration(), 3);
 
+        // then
         assertThat(cart.getItems()).hasSize(1);
         assertThat(cart.getItems().get(0).getQuantity()).isEqualTo(3);
     }
 
     @Test
     void shouldThrowExceptionWhenProductDoesNotExist() {
+        // given
         when(productManager.getProduct("E1")).thenReturn(Optional.empty());
 
+        // when & then
         assertThatThrownBy(() -> cartService.addToCart("E1", new NoConfiguration(), 1))
                 .isInstanceOf(ProductNotFoundException.class)
                 .hasMessageContaining("Product not found");
@@ -69,21 +74,25 @@ class CartServiceTest {
 
     @Test
     void shouldThrowExceptionWhenStockIsInsufficient() {
+        // given
         when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
 
+        // when & then
         assertThatThrownBy(() -> cartService.addToCart("E1", new NoConfiguration(), 20))
                 .isInstanceOf(InsufficientStockException.class)
                 .hasMessageContaining("Not enough stock");
 
+        // then
         assertThat(cart.isEmpty()).isTrue();
     }
 
     @Test
     void shouldAccountForQuantityAlreadyInCartWhenCheckingStock() {
+        // given
         when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
-
         cartService.addToCart("E1", new NoConfiguration(), 7);
 
+        // when & then
         assertThatThrownBy(() -> cartService.addToCart("E1", new NoConfiguration(), 5))
                 .isInstanceOf(InsufficientStockException.class)
                 .hasMessageContaining("Not enough stock");
@@ -91,14 +100,17 @@ class CartServiceTest {
 
     @Test
     void shouldReturnCartItemsWhenViewingCart() {
+        // given
         when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
         cartService.addToCart("E1", new NoConfiguration(), 2);
 
+        // when & then
         assertThat(cartService.viewCart()).hasSize(1);
     }
 
     @Test
     void shouldThrowExceptionWhenPlacingOrderWithNullCustomer() {
+        // when & then
         assertThatThrownBy(() -> cartService.placeOrder(null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Customer cannot be null");
@@ -106,82 +118,117 @@ class CartServiceTest {
 
     @Test
     void shouldThrowExceptionWhenPlacingOrderWithEmptyCart() {
+        // when & then
         assertThatThrownBy(() -> cartService.placeOrder(customer))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Cart is empty");
     }
 
     @Test
-    void shouldCreateOrderAndReduceStockAndClearCartWhenPlacingOrder() {
+    void shouldCreateOrderAndReserveStockAndClearCartWhenPlacingOrder() {
+        // given
         when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
         cartService.addToCart("E1", new NoConfiguration(), 3);
 
+        // when
         Order order = cartService.placeOrder(customer);
 
+        // then
         assertThat(order).isNotNull();
         assertThat(order.getOrderId()).isNotBlank();
         assertThat(order.getCustomerId()).isEqualTo("CU1");
         assertThat(order.getOrderedItems()).hasSize(1);
         assertThat(order.getSubtotal()).isEqualByComparingTo("149.97");
         assertThat(order.getDiscountAmount()).isEqualByComparingTo("0.00");
-        assertThat(order.getTotalAmount()).isEqualByComparingTo("149.97"); // 49.99 * 3
+        assertThat(order.getTotalAmount()).isEqualByComparingTo("149.97");
 
-        assertThat(cable.getQuantity()).isEqualTo(7); // 10 - 3
-        verify(productManager, times(1)).updateProduct(cable);
+        verify(productManager, times(1)).reserveStock("E1", 3);
         assertThat(cart.isEmpty()).isTrue();
     }
 
     @Test
     void shouldGenerateDifferentOrderIdsForConsecutiveOrdersFromSameCart() {
+        // given
         when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
-
         cartService.addToCart("E1", new NoConfiguration(), 1);
         Order firstOrder = cartService.placeOrder(customer);
 
-        cable.setQuantity(cable.getQuantity() + 5); // uzupełnienie stanu magazynowego
         cartService.addToCart("E1", new NoConfiguration(), 1);
+
+        // when
         Order secondOrder = cartService.placeOrder(customer);
 
+        // then
         assertThat(firstOrder.getOrderId()).isNotEqualTo(secondOrder.getOrderId());
     }
 
     @Test
     void shouldThrowExceptionWhenPlacingOrderAndStockBecameInsufficient() {
+        // given
         when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
         cartService.addToCart("E1", new NoConfiguration(), 3);
 
-        // Symulacja: stan magazynowy spadł po dodaniu do koszyka, przed złożeniem zamówienia
-        cable.setQuantity(1);
+        doThrow(new InsufficientStockException("E1"))
+                .when(productManager).reserveStock("E1", 3);
 
+        // when & then
         assertThatThrownBy(() -> cartService.placeOrder(customer))
                 .isInstanceOf(InsufficientStockException.class)
                 .hasMessageContaining("Not enough stock");
 
-        verify(productManager, never()).updateProduct(any());
-        assertThat(cart.isEmpty()).isFalse(); // koszyk nie czyszczony przy nieudanej próbie
+        // then
+        assertThat(cart.isEmpty()).isFalse();
     }
 
     @Test
     void shouldThrowExceptionWhenPlacingOrderAndProductWasRemoved() {
-        when(productManager.getProduct("E1"))
-                .thenReturn(Optional.of(cable))  // podczas addToCart
-                .thenReturn(Optional.empty());   // podczas placeOrder - produkt usunięty z magazynu
-
+        // given
+        when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
         cartService.addToCart("E1", new NoConfiguration(), 2);
 
+        // Symulacja: produkt usunięty z magazynu między dodaniem do koszyka a złożeniem zamówienia
+        doThrow(new ProductNotFoundException("E1"))
+                .when(productManager).reserveStock("E1", 2);
+
+        // when & then
         assertThatThrownBy(() -> cartService.placeOrder(customer))
                 .isInstanceOf(ProductNotFoundException.class)
                 .hasMessageContaining("Product not found");
     }
 
     @Test
+    void shouldReleaseAlreadyReservedItemsWhenLaterItemFailsToReserve() {
+        // given
+        Product mouse = new Electronics("E2", "Wireless Mouse", new BigDecimal("29.99"), 10);
+        when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
+        when(productManager.getProduct("E2")).thenReturn(Optional.of(mouse));
+
+        cartService.addToCart("E1", new NoConfiguration(), 2); // ta rezerwacja się powiedzie
+        cartService.addToCart("E2", new NoConfiguration(), 1); // ta rzuci wyjątek
+
+        doNothing().when(productManager).reserveStock("E1", 2);
+        doThrow(new InsufficientStockException("E2"))
+                .when(productManager).reserveStock("E2", 1);
+
+        // when & then
+        assertThatThrownBy(() -> cartService.placeOrder(customer))
+                .isInstanceOf(InsufficientStockException.class);
+
+        // then
+        verify(productManager, times(1)).reserveStock("E1", 2);
+        verify(productManager, times(1)).releaseStock("E1", 2);
+    }
+
+    @Test
     void shouldCalculateDiscountWhenValidDiscountCodeProvided() {
+        // given
         when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
         cartService.addToCart("E1", new NoConfiguration(), 2); // 49.99 * 2 = 99.98
 
+        // when
         Order order = cartService.placeOrder(customer, "WELCOME10");
 
-        // 10% rabatu od 100 zł
+        // then
         assertThat(order.getSubtotal()).isEqualByComparingTo("99.98");
         assertThat(order.getDiscountAmount()).isEqualByComparingTo("9.998");
         assertThat(order.getTotalAmount()).isEqualByComparingTo("89.982");
@@ -189,12 +236,14 @@ class CartServiceTest {
 
     @Test
     void shouldApplyZeroDiscountWhenInvalidDiscountCodeProvided() {
+        // given
         when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
         cartService.addToCart("E1", new NoConfiguration(), 2);
 
+        // when
         Order order = cartService.placeOrder(customer, "FAKECODE");
 
-        // Brak rabatu
+        // then
         assertThat(order.getSubtotal()).isEqualByComparingTo("99.98");
         assertThat(order.getDiscountAmount()).isEqualByComparingTo("0.00");
         assertThat(order.getTotalAmount()).isEqualByComparingTo("99.98");

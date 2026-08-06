@@ -4,10 +4,7 @@ import lombok.RequiredArgsConstructor;
 import pl.adrian.electroshop.exception.ElectroShopException;
 import pl.adrian.electroshop.model.order.Order;
 import pl.adrian.electroshop.model.order.OrderStatus;
-import pl.adrian.electroshop.model.product.Computer;
-import pl.adrian.electroshop.model.product.Electronics;
-import pl.adrian.electroshop.model.product.Product;
-import pl.adrian.electroshop.model.product.Smartphone;
+import pl.adrian.electroshop.model.product.*;
 import pl.adrian.electroshop.repository.OrderRepository;
 import pl.adrian.electroshop.service.OrderProcessor;
 import pl.adrian.electroshop.service.ProductManager;
@@ -99,12 +96,11 @@ public class EmployeeMenu {
         try {
             productManager.removeProduct(id);
             System.out.println("Produkt usunięty.");
-        } catch (IllegalArgumentException e) {
+        } catch (ElectroShopException | IllegalArgumentException e) {
             System.out.println("Nie udało się usunąć produktu: " + e.getMessage());
         }
     }
 
-    // brak opcji na cancel, ale to demo cli
     private void changeOrderStatus() {
         List<Order> orders = orderRepository.findAll();
         if (orders.isEmpty()) {
@@ -157,7 +153,6 @@ public class EmployeeMenu {
                 .collect(Collectors.toList());
     }
 
-    // rzuci NumberFormatException jeśli coś nienumerycznego, dla prostego CLI zostawiam
     private List<Integer> readCommaSeparatedInts(String prompt) {
         System.out.print(prompt);
         String input = reader.readLine();

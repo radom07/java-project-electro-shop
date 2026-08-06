@@ -48,7 +48,6 @@ class OrderProcessorTest {
 
     private OrderProcessor orderProcessor;
 
-    private Product cable;
     private Order order;
 
     private Clock fixedClock;
@@ -58,7 +57,6 @@ class OrderProcessorTest {
         fixedClock = Clock.fixed(Instant.parse("2026-08-04T10:00:00Z"), ZoneId.of("Europe/Warsaw"));
         orderProcessor = new OrderProcessor(orderRepository, invoiceRepository, invoiceNumberGenerator, productManager, fixedClock);
 
-        cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 7); // 10 - 3 sprzedane
         Customer customer = new Customer("CU1", "Jan", "Kowalski", "jan.kowalski@test.pl");
         CartItem cartItem = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 10)
                 .toCartItem(new NoConfiguration(), 3);
@@ -156,18 +154,18 @@ class OrderProcessorTest {
     // cancelOrder
 
     @Test
-    void shouldCancelOrderAndRestoreStockWhenOrderIsPlaced() {
+    void shouldCancelOrderAndReleaseStockWhenOrderIsPlaced() {
         // given
         when(orderRepository.findById("OR1")).thenReturn(Optional.of(order));
-        when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
 
         // when
         orderProcessor.cancelOrder("OR1");
 
         // then
         assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELLED);
-        assertThat(cable.getQuantity()).isEqualTo(10); // 7 + 3 przywrócone
-        verify(productManager, times(1)).updateProduct(cable);
+        // Faktyczne przywrócenie stanu magazynowego to odpowiedzialność ProductManager
+        // (przetestowana osobno) - tu weryfikujemy tylko, że OrderProcessor o to poprosił.
+        verify(productManager, times(1)).releaseStock("E1", 3);
         verify(orderRepository, times(1)).save(order);
     }
 
@@ -193,7 +191,7 @@ class OrderProcessorTest {
                 .isInstanceOf(InvalidOrderStatusTransitionException.class)
                 .hasMessageContaining("invoice correction is required");
 
-        verify(productManager, never()).updateProduct(any());
+        verify(productManager, never()).releaseStock(any(), anyInt());
         verify(orderRepository, never()).save(any());
     }
 
@@ -209,22 +207,48 @@ class OrderProcessorTest {
                 .isInstanceOf(InvalidOrderStatusTransitionException.class)
                 .hasMessageContaining("Cannot cancel order in status: SHIPPED");
 
-        verify(productManager, never()).updateProduct(any());
+        verify(productManager, never()).releaseStock(any(), anyInt());
     }
 
     @Test
     void shouldThrowExceptionWhenCancellingAndProductNoLongerExists() {
         // given
         when(orderRepository.findById("OR1")).thenReturn(Optional.of(order));
-        when(productManager.getProduct("E1")).thenReturn(Optional.empty());
+        doThrow(new ProductNotFoundException("E1"))
+                .when(productManager).releaseStock("E1", 3);
 
         // when & then
         assertThatThrownBy(() -> orderProcessor.cancelOrder("OR1"))
                 .isInstanceOf(ProductNotFoundException.class)
                 .hasMessageContaining("Product not found");
 
-        verify(productManager, never()).updateProduct(any());
         verify(orderRepository, never()).save(any());
         assertThat(order.getStatus()).isEqualTo(OrderStatus.PLACED); // status nietknięty
+    }
+
+    @Test
+    void shouldReReserveAlreadyReleasedItemsWhenLaterItemFailsToRelease() {
+        // given
+        Customer customer = new Customer("CU1", "Jan", "Kowalski", "jan.kowalski@test.pl");
+        CartItem firstItem = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 10)
+                .toCartItem(new NoConfiguration(), 3);
+        CartItem secondItem = new Electronics("E2", "Wireless Mouse", new BigDecimal("29.99"), 5)
+                .toCartItem(new NoConfiguration(), 1);
+        Order multiItemOrder = new Order("OR2", Instant.now(fixedClock), customer,
+                List.of(firstItem, secondItem), new BigDecimal("179.94"), BigDecimal.ZERO);
+
+        when(orderRepository.findById("OR2")).thenReturn(Optional.of(multiItemOrder));
+
+        doNothing().when(productManager).releaseStock("E1", 3);
+        doThrow(new ProductNotFoundException("E2"))
+                .when(productManager).releaseStock("E2", 1);
+
+        // when & then
+        assertThatThrownBy(() -> orderProcessor.cancelOrder("OR2"))
+                .isInstanceOf(ProductNotFoundException.class);
+
+        verify(productManager, times(1)).releaseStock("E1", 3);
+        verify(productManager, times(1)).reserveStock("E1", 3);
+        assertThat(multiItemOrder.getStatus()).isEqualTo(OrderStatus.PLACED);
     }
 }

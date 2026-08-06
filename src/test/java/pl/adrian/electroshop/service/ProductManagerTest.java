@@ -159,4 +159,70 @@ class ProductManagerTest {
                 .containsExactlyElementsOf(mockList);
         verify(productRepository, times(1)).findAll();
     }
+
+    @Test
+    void shouldReserveStockWhenSufficient() {
+        // given
+        when(productRepository.findById(productId)).thenReturn(Optional.of(sampleProduct));
+
+        // when
+        productManager.reserveStock(productId, 3);
+
+        // then
+        assertThat(sampleProduct.getQuantity()).isEqualTo(2);
+        verify(productRepository, times(1)).save(sampleProduct);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenReservingWithInsufficientStock() {
+        // given
+        when(productRepository.findById(productId)).thenReturn(Optional.of(sampleProduct));
+
+        // when & then
+        assertThatThrownBy(() -> productManager.reserveStock(productId, 10))
+                .isInstanceOf(pl.adrian.electroshop.exception.InsufficientStockException.class)
+                .hasMessageContaining(productId);
+
+        verify(productRepository, never()).save(any());
+        assertThat(sampleProduct.getQuantity()).isEqualTo(5);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenReservingNonExistentProduct() {
+        // given
+        when(productRepository.findById(productId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> productManager.reserveStock(productId, 1))
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessageContaining("Product not found");
+
+        verify(productRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldReleaseStockSuccessfully() {
+        // given
+        when(productRepository.findById(productId)).thenReturn(Optional.of(sampleProduct));
+
+        // when
+        productManager.releaseStock(productId, 4);
+
+        // then
+        assertThat(sampleProduct.getQuantity()).isEqualTo(9);
+        verify(productRepository, times(1)).save(sampleProduct);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenReleasingNonExistentProduct() {
+        // given
+        when(productRepository.findById(productId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> productManager.releaseStock(productId, 1))
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessageContaining("Product not found");
+
+        verify(productRepository, never()).save(any());
+    }
 }
