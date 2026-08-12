@@ -2,6 +2,7 @@ package pl.adrian.electroshop.service;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import pl.adrian.electroshop.exception.InsufficientStockException;
 import pl.adrian.electroshop.exception.ProductNotFoundException;
 import pl.adrian.electroshop.model.cart.Cart;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @RequiredArgsConstructor
 public class CartService {
 
@@ -40,11 +42,14 @@ public class CartService {
                 .orElse(0);
 
         if (product.getQuantity() < alreadyInCart + quantity) {
+            log.warn("Insufficient stock for product {}: requested {}, available {}",
+                    productId, alreadyInCart + quantity, product.getQuantity());
             throw new InsufficientStockException(productId);
         }
 
         CartItem cartItem = product.toCartItem(configuration, quantity);
         cart.addItem(cartItem);
+        log.debug("Added product {} (x{}) to cart", productId, quantity);
     }
 
     public Order placeOrder(Customer customer) {
@@ -72,6 +77,7 @@ public class CartService {
                 discountAmount
         );
         cart.clear();
+        log.info("Order {} placed for customer {}", order.getOrderId(), customer.getCustomerId());
         return order;
     }
 

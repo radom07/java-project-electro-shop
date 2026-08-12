@@ -2,6 +2,7 @@ package pl.adrian.electroshop.service.concurrency;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import pl.adrian.electroshop.model.invoice.Invoice;
 import pl.adrian.electroshop.model.order.Order;
 import pl.adrian.electroshop.service.OrderProcessor;
@@ -13,6 +14,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+@Slf4j
 @RequiredArgsConstructor
 public class OrderBatchProcessor {
 
@@ -23,6 +25,7 @@ public class OrderBatchProcessor {
     private final long simulatedDelayMillis;
 
     public List<Invoice> processSequentially(List<Order> orders) {
+        log.info("Processing {} order(s) sequentially", orders.size());
         List<Invoice> invoices = new ArrayList<>();
         for (Order order : orders) {
             invoices.add(processOrderWithDelay(order));
@@ -31,6 +34,7 @@ public class OrderBatchProcessor {
     }
 
     public List<Invoice> processConcurrently(List<Order> orders) {
+        log.info("Processing {} order(s) concurrently", orders.size());
         List<Future<Invoice>> futures = orders.stream()
                 .map(order -> executorService.submit(() -> processOrderWithDelay(order)))
                 .toList();
@@ -43,6 +47,7 @@ public class OrderBatchProcessor {
     }
 
     public CompletableFuture<List<Invoice>> processAsync(List<Order> orders) {
+        log.info("Processing {} order(s) asynchronously", orders.size());
         List<CompletableFuture<Invoice>> futures = orders.stream()
                 .map(order -> CompletableFuture.supplyAsync(
                         () -> processOrderWithDelay(order), executorService))
@@ -65,6 +70,7 @@ public class OrderBatchProcessor {
             Thread.sleep(simulatedDelayMillis);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            log.warn("Order processing was interrupted during simulated delay", e);
             throw new IllegalStateException("Order processing was interrupted", e);
         }
     }
@@ -74,8 +80,10 @@ public class OrderBatchProcessor {
             return future.get();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            log.warn("Order processing was interrupted while waiting for result", e);
             throw new IllegalStateException("Order processing was interrupted", e);
         } catch (ExecutionException e) {
+            log.error("Order processing failed", e.getCause());
             throw new IllegalStateException("Order processing failed", e.getCause());
         }
     }

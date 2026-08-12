@@ -1,9 +1,12 @@
 package pl.adrian.electroshop.service.concurrency;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+@Slf4j
 public final class CompensatingAction {
 
     private CompensatingAction() {
@@ -17,6 +20,7 @@ public final class CompensatingAction {
                 processed.add(item);
             }
         } catch (RuntimeException e) {
+            log.warn("Action failed after processing {} item(s), rolling back via compensation", processed.size(), e);
             for (T item : processed) {
                 compensation.accept(item);
             }

@@ -1,5 +1,6 @@
 package pl.adrian.electroshop.repository.file.serialization;
 
+import lombok.extern.slf4j.Slf4j;
 import pl.adrian.electroshop.exception.CorruptedFileDataException;
 import pl.adrian.electroshop.model.order.Order;
 import pl.adrian.electroshop.model.order.OrderLine;
@@ -16,6 +17,7 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class OrderFileSerializer {
 
     private enum ConfigType {
@@ -95,6 +97,7 @@ public class OrderFileSerializer {
             return new Order(snapshot);
 
         } catch (DateTimeParseException | IllegalArgumentException e) {
+            log.warn("Failed to parse order data due to invalid format", e);
             throw new CorruptedFileDataException("Failed to parse order data due to invalid format", e);
         }
     }
