@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 public class Computer extends Product {
     private final List<String> availableCpus;
-    private final List<Integer> availableRamOptions; // GB
+    private final List<Integer> availableRamOptions;
 
     public Computer(String id, String name, BigDecimal price, int quantity,
                     @NonNull List<String> availableCpus,
@@ -20,8 +20,8 @@ public class Computer extends Product {
 
         super(id, name, price, quantity);
 
-        this.availableCpus = availableCpus;
-        this.availableRamOptions = availableRamOptions;
+        this.availableCpus = List.copyOf(availableCpus);
+        this.availableRamOptions = List.copyOf(availableRamOptions);
     }
 
     @Override

@@ -51,7 +51,7 @@ class CartServiceTest {
     @Test
     void shouldAddProductToCartWhenStockIsSufficient() {
         // given
-        when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
+        when(productManager.findProduct("E1")).thenReturn(Optional.of(cable));
 
         // when
         cartService.addToCart("E1", new NoConfiguration(), 3);
@@ -64,7 +64,7 @@ class CartServiceTest {
     @Test
     void shouldThrowExceptionWhenProductDoesNotExist() {
         // given
-        when(productManager.getProduct("E1")).thenReturn(Optional.empty());
+        when(productManager.findProduct("E1")).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> cartService.addToCart("E1", new NoConfiguration(), 1))
@@ -75,7 +75,7 @@ class CartServiceTest {
     @Test
     void shouldThrowExceptionWhenStockIsInsufficient() {
         // given
-        when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
+        when(productManager.findProduct("E1")).thenReturn(Optional.of(cable));
 
         // when & then
         assertThatThrownBy(() -> cartService.addToCart("E1", new NoConfiguration(), 20))
@@ -89,7 +89,7 @@ class CartServiceTest {
     @Test
     void shouldAccountForQuantityAlreadyInCartWhenCheckingStock() {
         // given
-        when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
+        when(productManager.findProduct("E1")).thenReturn(Optional.of(cable));
         cartService.addToCart("E1", new NoConfiguration(), 7);
 
         // when & then
@@ -101,7 +101,7 @@ class CartServiceTest {
     @Test
     void shouldReturnCartItemsWhenViewingCart() {
         // given
-        when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
+        when(productManager.findProduct("E1")).thenReturn(Optional.of(cable));
         cartService.addToCart("E1", new NoConfiguration(), 2);
 
         // when & then
@@ -112,8 +112,8 @@ class CartServiceTest {
     void shouldThrowExceptionWhenPlacingOrderWithNullCustomer() {
         // when & then
         assertThatThrownBy(() -> cartService.placeOrder(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Customer cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
     }
 
     @Test
@@ -127,7 +127,7 @@ class CartServiceTest {
     @Test
     void shouldCreateOrderAndReserveStockAndClearCartWhenPlacingOrder() {
         // given
-        when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
+        when(productManager.findProduct("E1")).thenReturn(Optional.of(cable));
         cartService.addToCart("E1", new NoConfiguration(), 3);
 
         // when
@@ -149,7 +149,7 @@ class CartServiceTest {
     @Test
     void shouldGenerateDifferentOrderIdsForConsecutiveOrdersFromSameCart() {
         // given
-        when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
+        when(productManager.findProduct("E1")).thenReturn(Optional.of(cable));
         cartService.addToCart("E1", new NoConfiguration(), 1);
         Order firstOrder = cartService.placeOrder(customer);
 
@@ -165,7 +165,7 @@ class CartServiceTest {
     @Test
     void shouldThrowExceptionWhenPlacingOrderAndStockBecameInsufficient() {
         // given
-        when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
+        when(productManager.findProduct("E1")).thenReturn(Optional.of(cable));
         cartService.addToCart("E1", new NoConfiguration(), 3);
 
         doThrow(new InsufficientStockException("E1"))
@@ -183,7 +183,7 @@ class CartServiceTest {
     @Test
     void shouldThrowExceptionWhenPlacingOrderAndProductWasRemoved() {
         // given
-        when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
+        when(productManager.findProduct("E1")).thenReturn(Optional.of(cable));
         cartService.addToCart("E1", new NoConfiguration(), 2);
 
         // Symulacja: produkt usunięty z magazynu między dodaniem do koszyka a złożeniem zamówienia
@@ -200,8 +200,8 @@ class CartServiceTest {
     void shouldReleaseAlreadyReservedItemsWhenLaterItemFailsToReserve() {
         // given
         Product mouse = new Electronics("E2", "Wireless Mouse", new BigDecimal("29.99"), 10);
-        when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
-        when(productManager.getProduct("E2")).thenReturn(Optional.of(mouse));
+        when(productManager.findProduct("E1")).thenReturn(Optional.of(cable));
+        when(productManager.findProduct("E2")).thenReturn(Optional.of(mouse));
 
         cartService.addToCart("E1", new NoConfiguration(), 2); // ta rezerwacja się powiedzie
         cartService.addToCart("E2", new NoConfiguration(), 1); // ta rzuci wyjątek
@@ -222,7 +222,7 @@ class CartServiceTest {
     @Test
     void shouldCalculateDiscountWhenValidDiscountCodeProvided() {
         // given
-        when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
+        when(productManager.findProduct("E1")).thenReturn(Optional.of(cable));
         cartService.addToCart("E1", new NoConfiguration(), 2); // 49.99 * 2 = 99.98
 
         // when
@@ -237,7 +237,7 @@ class CartServiceTest {
     @Test
     void shouldApplyZeroDiscountWhenInvalidDiscountCodeProvided() {
         // given
-        when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
+        when(productManager.findProduct("E1")).thenReturn(Optional.of(cable));
         cartService.addToCart("E1", new NoConfiguration(), 2);
 
         // when

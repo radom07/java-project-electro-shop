@@ -105,6 +105,6 @@ class InvoiceFileSerializerTest {
         // when & then
         assertThatThrownBy(() -> serializer.deserialize(incompleteLines))
                 .isInstanceOf(CorruptedFileDataException.class)
-                .hasMessageContaining("Failed to parse invoice data");
+                .hasMessageContaining("Missing required key in file data");
     }
 }

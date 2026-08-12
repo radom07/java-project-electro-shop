@@ -4,7 +4,10 @@ import lombok.RequiredArgsConstructor;
 import pl.adrian.electroshop.exception.ElectroShopException;
 import pl.adrian.electroshop.model.order.Order;
 import pl.adrian.electroshop.model.order.OrderStatus;
-import pl.adrian.electroshop.model.product.*;
+import pl.adrian.electroshop.model.product.Computer;
+import pl.adrian.electroshop.model.product.Electronics;
+import pl.adrian.electroshop.model.product.Product;
+import pl.adrian.electroshop.model.product.Smartphone;
 import pl.adrian.electroshop.repository.OrderRepository;
 import pl.adrian.electroshop.service.OrderProcessor;
 import pl.adrian.electroshop.service.ProductManager;
@@ -61,7 +64,7 @@ public class EmployeeMenu {
         System.out.println("3. Smartphone");
         String choice = reader.readLine();
 
-        String id = "P-" + System.currentTimeMillis(); // uproszczone ID do demo CLI
+        String id = generateDemoProductId();
         System.out.print("Nazwa produktu: ");
         String name = reader.readLine();
         BigDecimal price = new BigDecimal(readLineReplacingComma("Cena: "));
@@ -161,5 +164,9 @@ public class EmployeeMenu {
                 .filter(s -> !s.isBlank())
                 .map(Integer::parseInt)
                 .collect(Collectors.toList());
+    }
+
+    private static String generateDemoProductId() {
+        return "P-" + System.currentTimeMillis();
     }
 }

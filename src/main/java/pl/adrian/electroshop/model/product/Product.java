@@ -3,6 +3,7 @@ package pl.adrian.electroshop.model.product;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import pl.adrian.electroshop.exception.InsufficientStockException;
 import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 
 import java.math.BigDecimal;
@@ -10,9 +11,11 @@ import java.math.BigDecimal;
 @Getter
 public abstract class Product {
     private final String id;
-    @Setter private String name;
-    @Setter private BigDecimal price;
-    @Setter private int quantity;
+    @Setter
+    private String name;
+    @Setter
+    private BigDecimal price;
+    private int quantity;
 
     public Product(@NonNull String id,
                    @NonNull String name,
@@ -30,5 +33,22 @@ public abstract class Product {
     public CartItem toCartItem(ProductConfiguration configuration, int quantity) {
         validateConfiguration(configuration);
         return new CartItem(id, name, price, configuration, quantity);
+    }
+
+    public void decreaseStock(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Amount must not be negative");
+        }
+        if (amount > quantity) {
+            throw new InsufficientStockException(id);
+        }
+        quantity -= amount;
+    }
+
+    public void increaseStock(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Amount must not be negative");
+        }
+        quantity += amount;
     }
 }

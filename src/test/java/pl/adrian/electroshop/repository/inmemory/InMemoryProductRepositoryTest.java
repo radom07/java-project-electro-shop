@@ -52,8 +52,8 @@ class InMemoryProductRepositoryTest {
     void shouldThrowExceptionWhenSavingNullProduct() {
         // when & then
         assertThatThrownBy(() -> repository.save(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Product cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
     }
 
     @Test
@@ -73,16 +73,16 @@ class InMemoryProductRepositoryTest {
     void shouldThrowExceptionWhenDeletingWithNullId() {
         // when & then
         assertThatThrownBy(() -> repository.deleteById(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("ID cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
     }
 
     @Test
     void shouldThrowExceptionWhenFindingWithNullId() {
         // when & then
         assertThatThrownBy(() -> repository.findById(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("ID cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
     }
 
     @Test

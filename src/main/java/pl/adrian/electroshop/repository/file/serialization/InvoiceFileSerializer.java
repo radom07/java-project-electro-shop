@@ -7,9 +7,8 @@ import pl.adrian.electroshop.model.order.Order;
 import pl.adrian.electroshop.repository.OrderRepository;
 
 import java.time.LocalDate;
-import java.util.HashMap;
+import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.Map;
 
 public class InvoiceFileSerializer {
 
@@ -20,49 +19,27 @@ public class InvoiceFileSerializer {
     }
 
     public String serialize(Invoice invoice) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("invoiceNumber=").append(invoice.getInvoiceNumber()).append("\n");
-        sb.append("issueDate=").append(invoice.getIssueDate()).append("\n");
-        sb.append("orderId=").append(invoice.getOrder().getOrderId()).append("\n");
-        return sb.toString();
+        StringBuilder builder = new StringBuilder();
+        builder.append("invoiceNumber=").append(invoice.getInvoiceNumber()).append("\n");
+        builder.append("issueDate=").append(invoice.getIssueDate()).append("\n");
+        builder.append("orderId=").append(invoice.getOrder().getOrderId()).append("\n");
+        return builder.toString();
     }
 
     public Invoice deserialize(List<String> lines) {
-        Map<String, String> values = parseKeyValues(lines);
+        KeyValueLines parsedData = KeyValueLines.parse(lines);
+
+        String invoiceNumber = parsedData.getRequired("invoiceNumber");
+        String orderId = parsedData.getRequired("orderId");
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
 
         try {
-            String invoiceNumber = getRequiredValue(values, "invoiceNumber");
-            String orderId = getRequiredValue(values, "orderId");
-
-            Order order = orderRepository.findById(orderId)
-                    .orElseThrow(() -> new OrderNotFoundException(orderId));
-
-            return new Invoice(invoiceNumber, LocalDate.parse(getRequiredValue(values, "issueDate")), order);
-        } catch (Exception e) {
-            if (e instanceof OrderNotFoundException) {
-                throw e;
-            }
-            throw new CorruptedFileDataException("Failed to parse invoice data", e);
+            LocalDate issueDate = LocalDate.parse(parsedData.getRequired("issueDate"));
+            return new Invoice(invoiceNumber, issueDate, order);
+        } catch (DateTimeParseException e) {
+            throw new CorruptedFileDataException("Failed to parse invoice data: invalid date format", e);
         }
-    }
-
-    private Map<String, String> parseKeyValues(List<String> lines) {
-        Map<String, String> values = new HashMap<>();
-        for (String line : lines) {
-            if (line.isBlank()) {
-                continue;
-            }
-            String[] parts = line.split("=", 2);
-            values.put(parts[0], parts.length > 1 ? parts[1] : "");
-        }
-        return values;
-    }
-
-    private String getRequiredValue(Map<String, String> values, String key) {
-        String value = values.get(key);
-        if (value == null) {
-            throw new CorruptedFileDataException("Missing required key in file data: " + key);
-        }
-        return value;
     }
 }

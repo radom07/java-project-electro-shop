@@ -1,5 +1,6 @@
 package pl.adrian.electroshop.repository.inmemory;
 
+import lombok.NonNull;
 import pl.adrian.electroshop.model.product.Product;
 import pl.adrian.electroshop.repository.ProductRepository;
 
@@ -13,26 +14,17 @@ public class InMemoryProductRepository implements ProductRepository {
     private final Map<String, Product> products = new ConcurrentHashMap<>();
 
     @Override
-    public void save(Product product) {
-        if (product == null) {
-            throw new IllegalArgumentException("Product cannot be null");
-        }
+    public void save(@NonNull Product product) {
         products.put(product.getId(), product);
     }
 
     @Override
-    public void deleteById(String id) {
-        if (id == null) {
-            throw new IllegalArgumentException("ID cannot be null");
-        }
+    public void deleteById(@NonNull String id) {
         products.remove(id);
     }
 
     @Override
-    public Optional<Product> findById(String id) {
-        if (id == null) {
-            throw new IllegalArgumentException("ID cannot be null");
-        }
+    public Optional<Product> findById(@NonNull String id) {
         return Optional.ofNullable(products.get(id));
     }
 

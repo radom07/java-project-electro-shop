@@ -70,8 +70,8 @@ class InMemoryInvoiceRepositoryTest {
     void shouldThrowExceptionWhenSavingNullInvoice() {
         // when & then
         assertThatThrownBy(() -> repository.save(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invoice cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
     }
 
     @Test
@@ -87,8 +87,8 @@ class InMemoryInvoiceRepositoryTest {
     void shouldThrowExceptionWhenFindingWithNullInvoiceNumber() {
         // when & then
         assertThatThrownBy(() -> repository.findByInvoiceNumber(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invoice number cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
     }
 
     @Test

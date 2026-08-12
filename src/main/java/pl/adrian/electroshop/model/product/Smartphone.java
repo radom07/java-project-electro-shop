@@ -13,8 +13,8 @@ import java.util.List;
 @Getter
 public class Smartphone extends Product {
     private final List<String> availableColors;
-    private final List<Integer> availableBatteryCapacities; // mAh
-    private final List<String> availableAccessories; // "Case", "Glass", "Charger", "Phone Holder"
+    private final List<Integer> availableBatteryCapacities;
+    private final List<String> availableAccessories;
 
     public Smartphone(String id, String name, BigDecimal price, int quantity,
                       @NonNull List<String> availableColors,
@@ -23,9 +23,9 @@ public class Smartphone extends Product {
 
         super(id, name, price, quantity);
 
-        this.availableColors = availableColors;
-        this.availableBatteryCapacities = availableBatteryCapacities;
-        this.availableAccessories = availableAccessories;
+        this.availableColors = List.copyOf(availableColors);
+        this.availableBatteryCapacities = List.copyOf(availableBatteryCapacities);
+        this.availableAccessories = List.copyOf(availableAccessories);
     }
 
     @Override

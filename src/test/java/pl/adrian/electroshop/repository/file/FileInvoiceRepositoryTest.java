@@ -90,19 +90,19 @@ class FileInvoiceRepositoryTest {
     }
 
     @Test
-    void shouldThrowIllegalArgumentExceptionWhenSavingNullInvoice() {
+    void shouldThrowNullPointerExceptionWhenSavingNullInvoice() {
         // when & then
         assertThatThrownBy(() -> repository.save(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invoice cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
     }
 
     @Test
-    void shouldThrowIllegalArgumentExceptionWhenFindingWithNullInvoiceNumber() {
+    void shouldThrowNullPointerExceptionWhenFindingWithNullInvoiceNumber() {
         // when & then
         assertThatThrownBy(() -> repository.findByInvoiceNumber(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invoice number cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
     }
 
     @Test

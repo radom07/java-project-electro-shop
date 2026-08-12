@@ -1,5 +1,6 @@
 package pl.adrian.electroshop.repository.file;
 
+import lombok.NonNull;
 import pl.adrian.electroshop.exception.FileRepositoryException;
 import pl.adrian.electroshop.model.invoice.Invoice;
 import pl.adrian.electroshop.repository.InvoiceRepository;
@@ -30,10 +31,7 @@ public class FileInvoiceRepository implements InvoiceRepository {
     }
 
     @Override
-    public void save(Invoice invoice) {
-        if (invoice == null) {
-            throw new IllegalArgumentException("Invoice cannot be null");
-        }
+    public void save(@NonNull Invoice invoice) {
         try {
             String serializedData = serializer.serialize(invoice);
             Files.writeString(fileFor(invoice.getInvoiceNumber()), serializedData, StandardCharsets.UTF_8);
@@ -43,10 +41,7 @@ public class FileInvoiceRepository implements InvoiceRepository {
     }
 
     @Override
-    public Optional<Invoice> findByInvoiceNumber(String invoiceNumber) {
-        if (invoiceNumber == null) {
-            throw new IllegalArgumentException("Invoice number cannot be null");
-        }
+    public Optional<Invoice> findByInvoiceNumber(@NonNull String invoiceNumber) {
         Path file = fileFor(invoiceNumber);
         if (!Files.exists(file)) {
             return Optional.empty();

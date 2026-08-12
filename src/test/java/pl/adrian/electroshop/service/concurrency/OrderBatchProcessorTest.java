@@ -1,4 +1,4 @@
-package pl.adrian.electroshop.service;
+package pl.adrian.electroshop.service.concurrency;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +11,8 @@ import pl.adrian.electroshop.model.product.configuration.NoConfiguration;
 import pl.adrian.electroshop.repository.inmemory.InMemoryInvoiceRepository;
 import pl.adrian.electroshop.repository.inmemory.InMemoryOrderRepository;
 import pl.adrian.electroshop.repository.inmemory.InMemoryProductRepository;
+import pl.adrian.electroshop.service.OrderProcessor;
+import pl.adrian.electroshop.service.ProductManager;
 import pl.adrian.electroshop.service.invoice.SequentialInvoiceNumberGenerator;
 
 import java.math.BigDecimal;
@@ -42,7 +44,7 @@ class OrderBatchProcessorTest {
                 new InMemoryOrderRepository(),
                 new InMemoryInvoiceRepository(),
                 new SequentialInvoiceNumberGenerator(fixedClock),
-                new ProductManager(new InMemoryProductRepository()),
+                new ProductManager(new InMemoryProductRepository(), new ProductLockRegistry()),
                 fixedClock
         );
 

@@ -6,11 +6,6 @@ import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 
 import java.math.BigDecimal;
 
-/*
-Dodałem tą klasę bo jest problem gdyby ktoś użył order.getOrderedItems().get(0).setQuantity
-Można też byłoby usunąć settery z CartItem i operowanie setQty w koszuku postawić na oprcji reamove add
-Ale to by bylo chyba kosztowniejsze na ten moment niż OrderLine
- */
 @Getter
 public final class OrderLine {
     private final String productId;
@@ -27,7 +22,6 @@ public final class OrderLine {
         this.quantity = cartItem.getQuantity();
     }
 
-    // Konstruktor do odtwarzania OrderLine z persystencji plikowej
     public OrderLine(String productId, String productName, BigDecimal unitPrice,
                      ProductConfiguration configuration, int quantity) {
         this.productId = productId;

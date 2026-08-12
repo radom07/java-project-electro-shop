@@ -4,6 +4,7 @@ import pl.adrian.electroshop.exception.CorruptedFileDataException;
 import pl.adrian.electroshop.model.order.Order;
 import pl.adrian.electroshop.model.order.OrderLine;
 import pl.adrian.electroshop.model.order.OrderStatus;
+import pl.adrian.electroshop.model.order.OrderSnapshot;
 import pl.adrian.electroshop.model.product.configuration.ComputerConfiguration;
 import pl.adrian.electroshop.model.product.configuration.NoConfiguration;
 import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
@@ -11,128 +12,118 @@ import pl.adrian.electroshop.model.product.configuration.SmartphoneConfiguration
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class OrderFileSerializer {
 
+    private enum ConfigType {
+        COMPUTER, SMARTPHONE, NONE
+    }
+
     public String serialize(Order order) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("orderId=").append(order.getOrderId()).append("\n");
-        sb.append("placedAt=").append(order.getPlacedAt()).append("\n");
-        sb.append("customerId=").append(order.getCustomerId()).append("\n");
-        sb.append("customerFirstName=").append(order.getCustomerFirstName()).append("\n");
-        sb.append("customerLastName=").append(order.getCustomerLastName()).append("\n");
-        sb.append("customerEmail=").append(order.getCustomerEmail()).append("\n");
-        sb.append("status=").append(order.getStatus()).append("\n");
-        sb.append("subtotal=").append(order.getSubtotal()).append("\n");
-        sb.append("discountAmount=").append(order.getDiscountAmount()).append("\n");
+        StringBuilder builder = new StringBuilder();
+        appendField(builder, "orderId", order.getOrderId());
+        appendField(builder, "placedAt", order.getPlacedAt());
+        appendField(builder, "customerId", order.getCustomerId());
+        appendField(builder, "customerFirstName", order.getCustomerFirstName());
+        appendField(builder, "customerLastName", order.getCustomerLastName());
+        appendField(builder, "customerEmail", order.getCustomerEmail());
+        appendField(builder, "status", order.getStatus());
+        appendField(builder, "subtotal", order.getSubtotal());
+        appendField(builder, "discountAmount", order.getDiscountAmount());
 
         List<OrderLine> items = order.getOrderedItems();
-        sb.append("items=").append(items.size()).append("\n");
+        appendField(builder, "items", items.size());
         for (int i = 0; i < items.size(); i++) {
-            appendItem(sb, "item." + i, items.get(i));
+            appendItem(builder, "item." + i, items.get(i));
         }
-        return sb.toString();
+        return builder.toString();
     }
 
-    private void appendItem(StringBuilder sb, String prefix, OrderLine item) {
-        sb.append(prefix).append(".productId=").append(item.getProductId()).append("\n");
-        sb.append(prefix).append(".productName=").append(item.getProductName()).append("\n");
-        sb.append(prefix).append(".unitPrice=").append(item.getUnitPrice()).append("\n");
-        sb.append(prefix).append(".quantity=").append(item.getQuantity()).append("\n");
-        appendConfiguration(sb, prefix, item.getConfiguration());
+    private void appendItem(StringBuilder builder, String prefix, OrderLine item) {
+        appendField(builder, prefix + ".productId", item.getProductId());
+        appendField(builder, prefix + ".productName", item.getProductName());
+        appendField(builder, prefix + ".unitPrice", item.getUnitPrice());
+        appendField(builder, prefix + ".quantity", item.getQuantity());
+        appendConfiguration(builder, prefix, item.getConfiguration());
     }
 
-    private void appendConfiguration(StringBuilder sb, String prefix, ProductConfiguration configuration) {
+    private void appendConfiguration(StringBuilder builder, String prefix, ProductConfiguration configuration) {
         if (configuration instanceof ComputerConfiguration cc) {
-            sb.append(prefix).append(".configType=COMPUTER\n");
-            sb.append(prefix).append(".configCpu=").append(cc.cpu()).append("\n");
-            sb.append(prefix).append(".configRam=").append(cc.ram()).append("\n");
+            appendField(builder, prefix + ".configType", ConfigType.COMPUTER);
+            appendField(builder, prefix + ".configCpu", cc.cpu());
+            appendField(builder, prefix + ".configRam", cc.ram());
         } else if (configuration instanceof SmartphoneConfiguration sc) {
-            sb.append(prefix).append(".configType=SMARTPHONE\n");
-            sb.append(prefix).append(".configColor=").append(sc.color()).append("\n");
-            sb.append(prefix).append(".configBattery=").append(sc.batteryCapacity()).append("\n");
-            sb.append(prefix).append(".configAccessories=").append(String.join(";", sc.accessories())).append("\n");
+            appendField(builder, prefix + ".configType", ConfigType.SMARTPHONE);
+            appendField(builder, prefix + ".configColor", sc.color());
+            appendField(builder, prefix + ".configBattery", sc.batteryCapacity());
+            appendField(builder, prefix + ".configAccessories", String.join(";", sc.accessories()));
         } else {
-            sb.append(prefix).append(".configType=NONE\n");
+            appendField(builder, prefix + ".configType", ConfigType.NONE);
         }
+    }
+
+    private void appendField(StringBuilder builder, String key, Object value) {
+        builder.append(key).append('=').append(value).append('\n');
     }
 
     public Order deserialize(List<String> lines) {
-        Map<String, String> values = parseKeyValues(lines);
+        KeyValueLines parsedData = KeyValueLines.parse(lines);
 
         try {
-            int itemCount = Integer.parseInt(getRequiredValue(values, "items"));
+            int itemCount = Integer.parseInt(parsedData.getRequired("items"));
             List<OrderLine> orderedItems = new ArrayList<>();
             for (int i = 0; i < itemCount; i++) {
-                orderedItems.add(readOrderLine(values, "item." + i));
+                orderedItems.add(readOrderLine(parsedData, "item." + i));
             }
 
-            return Order.reconstruct(
-                    getRequiredValue(values, "orderId"),
-                    Instant.parse(getRequiredValue(values, "placedAt")),
-                    getRequiredValue(values, "customerId"),
-                    getRequiredValue(values, "customerFirstName"),
-                    getRequiredValue(values, "customerLastName"),
-                    getRequiredValue(values, "customerEmail"),
-                    OrderStatus.valueOf(getRequiredValue(values, "status")),
+            OrderSnapshot snapshot = new OrderSnapshot(
+                    parsedData.getRequired("orderId"),
+                    Instant.parse(parsedData.getRequired("placedAt")),
+                    parsedData.getRequired("customerId"),
+                    parsedData.getRequired("customerFirstName"),
+                    parsedData.getRequired("customerLastName"),
+                    parsedData.getRequired("customerEmail"),
+                    OrderStatus.valueOf(parsedData.getRequired("status")),
                     orderedItems,
-                    new BigDecimal(getRequiredValue(values, "subtotal")),
-                    new BigDecimal(getRequiredValue(values, "discountAmount"))
+                    new BigDecimal(parsedData.getRequired("subtotal")),
+                    new BigDecimal(parsedData.getRequired("discountAmount"))
             );
-        } catch (Exception e) {
-            throw new CorruptedFileDataException("Failed to parse order data", e);
+
+            return new Order(snapshot);
+
+        } catch (DateTimeParseException | IllegalArgumentException e) {
+            throw new CorruptedFileDataException("Failed to parse order data due to invalid format", e);
         }
     }
 
-    private OrderLine readOrderLine(Map<String, String> values, String prefix) {
+    private OrderLine readOrderLine(KeyValueLines parsedData, String prefix) {
         return new OrderLine(
-                getRequiredValue(values, prefix + ".productId"),
-                getRequiredValue(values, prefix + ".productName"),
-                new BigDecimal(getRequiredValue(values, prefix + ".unitPrice")),
-                readConfiguration(values, prefix),
-                Integer.parseInt(getRequiredValue(values, prefix + ".quantity"))
+                parsedData.getRequired(prefix + ".productId"),
+                parsedData.getRequired(prefix + ".productName"),
+                new BigDecimal(parsedData.getRequired(prefix + ".unitPrice")),
+                readConfiguration(parsedData, prefix),
+                Integer.parseInt(parsedData.getRequired(prefix + ".quantity"))
         );
     }
 
-    private ProductConfiguration readConfiguration(Map<String, String> values, String prefix) {
-        String type = getRequiredValue(values, prefix + ".configType");
+    private ProductConfiguration readConfiguration(KeyValueLines parsedData, String prefix) {
+        ConfigType type = ConfigType.valueOf(parsedData.getRequired(prefix + ".configType"));
         return switch (type) {
-            case "COMPUTER" -> new ComputerConfiguration(
-                    getRequiredValue(values, prefix + ".configCpu"),
-                    Integer.parseInt(getRequiredValue(values, prefix + ".configRam")));
-            case "SMARTPHONE" -> {
-                String raw = getRequiredValue(values, prefix + ".configAccessories");
+            case COMPUTER -> new ComputerConfiguration(
+                    parsedData.getRequired(prefix + ".configCpu"),
+                    Integer.parseInt(parsedData.getRequired(prefix + ".configRam")));
+            case SMARTPHONE -> {
+                String raw = parsedData.getRequired(prefix + ".configAccessories");
                 List<String> accessories = raw.isBlank() ? List.of() : List.of(raw.split(";"));
                 yield new SmartphoneConfiguration(
-                        getRequiredValue(values, prefix + ".configColor"),
-                        Integer.parseInt(getRequiredValue(values, prefix + ".configBattery")),
+                        parsedData.getRequired(prefix + ".configColor"),
+                        Integer.parseInt(parsedData.getRequired(prefix + ".configBattery")),
                         accessories);
             }
-            default -> new NoConfiguration();
+            case NONE -> new NoConfiguration();
         };
-    }
-
-    private Map<String, String> parseKeyValues(List<String> lines) {
-        Map<String, String> values = new HashMap<>();
-        for (String line : lines) {
-            if (line.isBlank()) {
-                continue;
-            }
-            String[] parts = line.split("=", 2);
-            values.put(parts[0], parts.length > 1 ? parts[1] : "");
-        }
-        return values;
-    }
-
-    private String getRequiredValue(Map<String, String> values, String key) {
-        String value = values.get(key);
-        if (value == null) {
-            throw new CorruptedFileDataException("Missing required key in file data: " + key);
-        }
-        return value;
     }
 }

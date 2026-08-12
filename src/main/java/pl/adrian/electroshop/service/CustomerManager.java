@@ -13,38 +13,30 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CustomerManager {
 
-    @NonNull private final CustomerRepository customerRepository;
+    @NonNull
+    private final CustomerRepository customerRepository;
 
-    public void addCustomer(Customer customer) {
-        if (customer == null) {
-            throw new IllegalArgumentException("Customer cannot be null");
-        }
+    public void addCustomer(@NonNull Customer customer) {
         if (customerRepository.findById(customer.getCustomerId()).isPresent()) {
             throw new AlreadyExistsException("Customer " + customer.getCustomerId() + " " + customer.getFirstName() + " already exists");
         }
         customerRepository.save(customer);
     }
 
-    public void updateCustomer(Customer customer) {
-        if (customer == null) {
-            throw new IllegalArgumentException("Customer cannot be null");
-        }
+    public void updateCustomer(@NonNull Customer customer) {
         if (customerRepository.findById(customer.getCustomerId()).isEmpty()) {
             throw new CustomerNotFoundException(customer.getCustomerId());
         }
         customerRepository.save(customer);
     }
 
-    public void deleteCustomer(String id) {
-        if (id == null) {
-            throw new IllegalArgumentException("ID cannot be null");
-        }
+    public void deleteCustomer(@NonNull String id) {
         customerRepository.findById(id)
                 .orElseThrow(() -> new CustomerNotFoundException(id));
         customerRepository.deleteById(id);
     }
 
-    public Optional<Customer> getCustomer(String id) {
+    public Optional<Customer> findCustomer(@NonNull String id) {
         return customerRepository.findById(id);
     }
 

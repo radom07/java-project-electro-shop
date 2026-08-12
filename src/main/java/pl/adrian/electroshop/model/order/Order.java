@@ -21,13 +21,12 @@ public class Order {
     private final String customerEmail;
     private OrderStatus status = OrderStatus.PLACED;
 
-    private final List<OrderLine> orderedItems; // zmiana na OrderLine z CartItem - zabezpieczenie niemutowalności
+    private final List<OrderLine> orderedItems;
 
     private final BigDecimal subtotal;
     private final BigDecimal discountAmount;
     private final BigDecimal totalAmount;
 
-    // Konstruktor używany przez CartService
     public Order(@NonNull String orderId,
                  @NonNull Instant placedAt,
                  @NonNull Customer customer,
@@ -56,31 +55,18 @@ public class Order {
         this.totalAmount = subtotal.subtract(discountAmount);
     }
 
-    // Konstruktor do odtwarzania OrderLine z persystencji plikowej
-    private Order(String orderId, Instant placedAt, String customerId,
-                  String customerFirstName, String customerLastName, String customerEmail,
-                  OrderStatus status, List<OrderLine> orderedItems, BigDecimal subtotal,
-                  BigDecimal discountAmount) {
-        this.orderId = orderId;
-        this.placedAt = placedAt;
-        this.customerId = customerId;
-        this.customerFirstName = customerFirstName;
-        this.customerLastName = customerLastName;
-        this.customerEmail = customerEmail;
-        this.status = status;
-        this.orderedItems = List.copyOf(orderedItems);
-        this.subtotal = subtotal;
-        this.discountAmount = discountAmount;
-        this.totalAmount = subtotal.subtract(discountAmount);
-    }
-
-    public static Order reconstruct(String orderId, Instant placedAt,
-                                    String customerId, String customerFirstName,
-                                    String customerLastName, String customerEmail,
-                                    OrderStatus status, List<OrderLine> orderedItems,
-                                    BigDecimal subtotal, BigDecimal discountAmount) {
-        return new Order(orderId, placedAt, customerId, customerFirstName, customerLastName,
-                customerEmail, status, orderedItems, subtotal, discountAmount);
+    public Order(OrderSnapshot snapshot) {
+        this.orderId = snapshot.orderId();
+        this.placedAt = snapshot.placedAt();
+        this.customerId = snapshot.customerId();
+        this.customerFirstName = snapshot.customerFirstName();
+        this.customerLastName = snapshot.customerLastName();
+        this.customerEmail = snapshot.customerEmail();
+        this.status = snapshot.status();
+        this.orderedItems = List.copyOf(snapshot.orderedItems());
+        this.subtotal = snapshot.subtotal();
+        this.discountAmount = snapshot.discountAmount();
+        this.totalAmount = this.subtotal.subtract(this.discountAmount);
     }
 
     public void changeStatus(OrderStatus newStatus) {

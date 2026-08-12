@@ -11,9 +11,7 @@ public class Invoice {
     private final String invoiceNumber;
     private final LocalDate issueDate;
     private final Order order;
-    // w sumie można klase faktury rozwinąć tak aby była prawdziwym dokumentem księgowym
-    // Na przykład sprzedawca, VAT, kwota netto itp.
-    // Na potrzeby tego ćwiczenia jest to wersja uproszczona
+    // Na potrzeby tego ćwiczenia jest to wersja uproszczona faktury
 
     public Invoice(@NonNull String invoiceNumber,
                    @NonNull LocalDate issueDate,

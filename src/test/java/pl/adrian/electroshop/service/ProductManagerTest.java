@@ -5,12 +5,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.adrian.electroshop.exception.AlreadyExistsException;
 import pl.adrian.electroshop.exception.ProductNotFoundException;
 import pl.adrian.electroshop.model.product.Electronics;
 import pl.adrian.electroshop.model.product.Product;
 import pl.adrian.electroshop.repository.ProductRepository;
+import pl.adrian.electroshop.service.concurrency.ProductLockRegistry;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -27,6 +29,9 @@ class ProductManagerTest {
 
     @Mock
     private ProductRepository productRepository;
+
+    @Spy
+    private ProductLockRegistry lockRegistry = new ProductLockRegistry();
 
     @InjectMocks
     private ProductManager productManager;
@@ -121,7 +126,7 @@ class ProductManagerTest {
         when(productRepository.findById(productId)).thenReturn(Optional.of(sampleProduct));
 
         // when
-        Optional<Product> result = productManager.getProduct(productId);
+        Optional<Product> result = productManager.findProduct(productId);
 
         // then
         assertThat(result).isPresent().contains(sampleProduct);
@@ -134,7 +139,7 @@ class ProductManagerTest {
         when(productRepository.findById(productId)).thenReturn(Optional.empty());
 
         // when
-        Optional<Product> result = productManager.getProduct(productId);
+        Optional<Product> result = productManager.findProduct(productId);
 
         // then
         assertThat(result).isEmpty();

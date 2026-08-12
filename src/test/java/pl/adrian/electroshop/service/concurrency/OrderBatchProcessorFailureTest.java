@@ -1,4 +1,4 @@
-package pl.adrian.electroshop.service;
+package pl.adrian.electroshop.service.concurrency;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +11,7 @@ import pl.adrian.electroshop.model.order.Order;
 import pl.adrian.electroshop.model.product.CartItem;
 import pl.adrian.electroshop.model.product.Electronics;
 import pl.adrian.electroshop.model.product.configuration.NoConfiguration;
+import pl.adrian.electroshop.service.OrderProcessor;
 
 import java.math.BigDecimal;
 import java.time.Instant;

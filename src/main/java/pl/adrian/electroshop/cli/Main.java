@@ -17,7 +17,12 @@ import pl.adrian.electroshop.repository.inmemory.InMemoryCustomerRepository;
 import pl.adrian.electroshop.repository.inmemory.InMemoryInvoiceRepository;
 import pl.adrian.electroshop.repository.inmemory.InMemoryOrderRepository;
 import pl.adrian.electroshop.repository.inmemory.InMemoryProductRepository;
-import pl.adrian.electroshop.service.*;
+import pl.adrian.electroshop.service.CartService;
+import pl.adrian.electroshop.service.CustomerManager;
+import pl.adrian.electroshop.service.DiscountService;
+import pl.adrian.electroshop.service.OrderProcessor;
+import pl.adrian.electroshop.service.ProductManager;
+import pl.adrian.electroshop.service.concurrency.ProductLockRegistry;
 import pl.adrian.electroshop.service.invoice.InvoiceNumberGenerator;
 import pl.adrian.electroshop.service.invoice.SequentialInvoiceNumberGenerator;
 
@@ -41,7 +46,6 @@ public class Main {
         OrderRepository orderRepository;
         InvoiceRepository invoiceRepository;
 
-        // Inicjalizacja repozytoriów w zależności od wyboru
         if ("2".equals(storageChoice)) {
             OrderFileSerializer orderSerializer = new OrderFileSerializer();
             orderRepository = new FileOrderRepository(Path.of("data/orders"), orderSerializer);
@@ -61,7 +65,8 @@ public class Main {
         Clock systemClock = Clock.systemUTC();
         Clock accountingClock = systemClock.withZone(ZoneId.of("Europe/Warsaw"));
 
-        ProductManager productManager = new ProductManager(productRepository);
+        ProductLockRegistry productLockRegistry = new ProductLockRegistry();
+        ProductManager productManager = new ProductManager(productRepository, productLockRegistry);
         CustomerManager customerManager = new CustomerManager(customerRepository);
         InvoiceNumberGenerator invoiceNumberGenerator = new SequentialInvoiceNumberGenerator(accountingClock);
 
@@ -98,7 +103,6 @@ public class Main {
         System.out.println("Do zobaczenia!");
     }
 
-    // produkty testowe
     private static void seedSampleProducts(ProductManager productManager) {
         Product cable = new Electronics("E1", "Kabel USB-C", new BigDecimal("29.99"), 50);
 
