@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+// Design Pattern: FACADE (structural, GoF)
 @Slf4j
 @RequiredArgsConstructor
 public class OrderProcessor {

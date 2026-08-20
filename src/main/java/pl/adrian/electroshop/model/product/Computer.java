@@ -8,6 +8,7 @@ import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 public class Computer extends Product {
@@ -41,5 +42,59 @@ public class Computer extends Product {
     public String toString() {
         return String.format("Computer [ID: %s, Name: %s, Price: %.2f zł, Quantity: %d]",
                 getId(), getName(), getPrice(), getQuantity());
+    }
+
+    // Design Pattern: BUILDER (creational, GoF)
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+        private String id;
+        private String name;
+        private BigDecimal price;
+        private int quantity;
+        private List<String> availableCpus = List.of();
+        private List<Integer> availableRamOptions = List.of();
+
+        private Builder() {
+        }
+
+        public Builder id(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder price(BigDecimal price) {
+            this.price = price;
+            return this;
+        }
+
+        public Builder quantity(int quantity) {
+            this.quantity = quantity;
+            return this;
+        }
+
+        public Builder cpus(List<String> cpus) {
+            this.availableCpus = cpus;
+            return this;
+        }
+
+        public Builder ramOptions(List<Integer> ramOptions) {
+            this.availableRamOptions = ramOptions;
+            return this;
+        }
+
+        public Computer build() {
+            Objects.requireNonNull(id, "id is required");
+            Objects.requireNonNull(name, "name is required");
+            Objects.requireNonNull(price, "price is required");
+            return new Computer(id, name, price, quantity, availableCpus, availableRamOptions);
+        }
     }
 }

@@ -20,6 +20,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/*
+Design Pattern: FACADE (structural, GoF)
+CartService serves as the single entry point to the "cart -> order" process
+for the caller layer (CLI menu). Externally, it exposes only three simple methods:
+#addToCart, #viewCart, and #placeOrder - while internally, the facade orchestrates
+four collaborators that CustomerMenu is completely unaware of:
+
+ProductManager — checking availability and reserving/releasing stock CompensatingAction to roll back
+already completed reservations if an error occurs on a subsequent item
+Cart - the current session's cart state
+DiscountService - recalculating promo codes into discount amounts
+Clock - the order placement timestamp
+
+Without this facade, CustomerMenu would need to know the execution sequence itself
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class CartService {
@@ -68,14 +83,15 @@ public class CartService {
 
         Instant placedAt = Instant.now(clock);
 
-        Order order = new Order(
-                UUID.randomUUID().toString(),
-                placedAt,
-                customer,
-                cart.getItems(),
-                subtotal,
-                discountAmount
-        );
+        Order order = Order.builder()
+                .orderId(UUID.randomUUID().toString())
+                .placedAt(placedAt)
+                .customer(customer)
+                .items(cart.getItems())
+                .subtotal(subtotal)
+                .discountAmount(discountAmount)
+                .build();
+
         cart.clear();
         log.info("Order {} placed for customer {}", order.getOrderId(), customer.getCustomerId());
         return order;

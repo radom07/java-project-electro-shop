@@ -9,13 +9,10 @@ import pl.adrian.electroshop.repository.CustomerRepository;
 import pl.adrian.electroshop.repository.InvoiceRepository;
 import pl.adrian.electroshop.repository.OrderRepository;
 import pl.adrian.electroshop.repository.ProductRepository;
-import pl.adrian.electroshop.repository.file.FileInvoiceRepository;
-import pl.adrian.electroshop.repository.file.FileOrderRepository;
-import pl.adrian.electroshop.repository.file.serialization.InvoiceFileSerializer;
-import pl.adrian.electroshop.repository.file.serialization.OrderFileSerializer;
+import pl.adrian.electroshop.repository.factory.FileRepositoryFactory;
+import pl.adrian.electroshop.repository.factory.InMemoryRepositoryFactory;
+import pl.adrian.electroshop.repository.factory.RepositoryFactory;
 import pl.adrian.electroshop.repository.inmemory.InMemoryCustomerRepository;
-import pl.adrian.electroshop.repository.inmemory.InMemoryInvoiceRepository;
-import pl.adrian.electroshop.repository.inmemory.InMemoryOrderRepository;
 import pl.adrian.electroshop.repository.inmemory.InMemoryProductRepository;
 import pl.adrian.electroshop.service.CartService;
 import pl.adrian.electroshop.service.CustomerManager;
@@ -27,7 +24,6 @@ import pl.adrian.electroshop.service.invoice.InvoiceNumberGenerator;
 import pl.adrian.electroshop.service.invoice.SequentialInvoiceNumberGenerator;
 
 import java.math.BigDecimal;
-import java.nio.file.Path;
 import java.time.Clock;
 import java.time.ZoneId;
 import java.util.List;
@@ -43,21 +39,27 @@ public class Main {
         System.out.print("Wybierz opcję: ");
         String storageChoice = reader.readLine();
 
-        OrderRepository orderRepository;
-        InvoiceRepository invoiceRepository;
+        /*
+        Design Pattern: STRATEGY (behavioral, GoF) applied to the selection of the data
+        storage mechanism
 
-        if ("2".equals(storageChoice)) {
-            OrderFileSerializer orderSerializer = new OrderFileSerializer();
-            orderRepository = new FileOrderRepository(Path.of("data/orders"), orderSerializer);
+        OrderRepository and InvoiceRepository are strategy interfaces
+        InMemoryOrderRepository and FileOrderRepository are two interchangeable
+        implementations of the same algorithm how to save/read an order
+        The choice is made once, in a single place
+        The entire rest of the system OrderProcessor, CartService, CLI menu depends solely on the
+        interface and never checks which implementation it is communicating with
+         */
+        RepositoryFactory repositoryFactory = "2".equals(storageChoice)
+                ? new FileRepositoryFactory()
+                : new InMemoryRepositoryFactory();
 
-            InvoiceFileSerializer invoiceSerializer = new InvoiceFileSerializer(orderRepository);
-            invoiceRepository = new FileInvoiceRepository(Path.of("data/invoices"), invoiceSerializer);
-            System.out.println("--> Wybrano zapis do plików.");
-        } else {
-            orderRepository = new InMemoryOrderRepository();
-            invoiceRepository = new InMemoryInvoiceRepository();
-            System.out.println("--> Wybrano zapis w pamięci.");
-        }
+        OrderRepository orderRepository = repositoryFactory.createOrderRepository();
+        InvoiceRepository invoiceRepository = repositoryFactory.createInvoiceRepository(orderRepository);
+
+        System.out.println("2".equals(storageChoice)
+                ? "--> Wybrano zapis do plików."
+                : "--> Wybrano zapis w pamięci.");
 
         ProductRepository productRepository = new InMemoryProductRepository();
         CustomerRepository customerRepository = new InMemoryCustomerRepository();
