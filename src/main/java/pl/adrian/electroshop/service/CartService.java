@@ -14,9 +14,9 @@ import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 import pl.adrian.electroshop.service.concurrency.CompensatingAction;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -56,11 +56,7 @@ public class CartService {
                 .map(CartItem::getQuantity)
                 .orElse(0);
 
-        if (product.getQuantity() < alreadyInCart + quantity) {
-            log.warn("Insufficient stock for product {}: requested {}, available {}",
-                    productId, alreadyInCart + quantity, product.getQuantity());
-            throw new InsufficientStockException(productId);
-        }
+        validateStockAvailability(productId, quantity, product, alreadyInCart);
 
         CartItem cartItem = product.toCartItem(configuration, quantity);
         cart.addItem(cartItem);
@@ -76,21 +72,19 @@ public class CartService {
             throw new IllegalStateException("Cart is empty");
         }
 
-        reserveAllOrRollback(cart.getItems());
-
+        List<CartItem> items = cart.getItems();
         BigDecimal subtotal = cart.getTotal();
         BigDecimal discountAmount = calculateDiscount(discountCode, subtotal);
 
-        Instant placedAt = Instant.now(clock);
-
         Order order = Order.builder()
                 .orderId(UUID.randomUUID().toString())
-                .placedAt(placedAt)
+                .placedAt(Instant.now(clock))
                 .customer(customer)
-                .items(cart.getItems())
-                .subtotal(subtotal)
+                .items(items)
                 .discountAmount(discountAmount)
                 .build();
+
+        reserveAllOrRollback(items);
 
         cart.clear();
         log.info("Order {} placed for customer {}", order.getOrderId(), customer.getCustomerId());
@@ -108,10 +102,18 @@ public class CartService {
     private BigDecimal calculateDiscount(String discountCode, BigDecimal subtotal) {
         BigDecimal discountPercentage = discountService.getDiscountPercentage(discountCode)
                 .orElse(BigDecimal.ZERO);
-        return subtotal.multiply(discountPercentage);
+        return subtotal.multiply(discountPercentage).setScale(subtotal.scale(), RoundingMode.HALF_UP);
     }
 
     public List<CartItem> viewCart() {
         return cart.getItems();
+    }
+
+    private static void validateStockAvailability(String productId, int quantity, Product product, int alreadyInCart) {
+        if (product.getQuantity() < alreadyInCart + quantity) {
+            log.warn("Insufficient stock for product {}: requested {}, available {}",
+                    productId, alreadyInCart + quantity, product.getQuantity());
+            throw new InsufficientStockException(productId);
+        }
     }
 }

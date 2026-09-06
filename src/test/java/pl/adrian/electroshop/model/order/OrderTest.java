@@ -31,7 +31,7 @@ class OrderTest {
         List<CartItem> items = List.of(item);
 
         // when
-        Order order = new Order("1", Instant.now(), testCustomer, items, new BigDecimal("299.99"), BigDecimal.ZERO);
+        Order order = new Order("1", Instant.now(), testCustomer, items, BigDecimal.ZERO);
 
         // then
         assertThat(order.getOrderId()).isEqualTo("1");
@@ -46,7 +46,7 @@ class OrderTest {
         List<CartItem> emptyItems = List.of();
 
         // when & then
-        assertThatThrownBy(() -> new Order("1", Instant.now(), testCustomer, emptyItems, new BigDecimal("0.00"), BigDecimal.ZERO))
+        assertThatThrownBy(() -> new Order("1", Instant.now(), testCustomer, emptyItems, BigDecimal.ZERO))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Cannot create order with empty cart.");
     }
@@ -58,7 +58,7 @@ class OrderTest {
         CartItem item = testProduct.toCartItem(new NoConfiguration(), 1);
 
         // when & then
-        assertThatThrownBy(() -> new Order("1", Instant.now(), null, List.of(item), new BigDecimal("299.99"), BigDecimal.ZERO))
+        assertThatThrownBy(() -> new Order("1", Instant.now(), null, List.of(item), BigDecimal.ZERO))
                 .isInstanceOf(NullPointerException.class);
     }
 
@@ -76,7 +76,7 @@ class OrderTest {
         List<CartItem> modifiableList = new ArrayList<>();
         modifiableList.add(item);
 
-        Order order = new Order("1", Instant.now(), testCustomer, modifiableList, new BigDecimal("299.99"), BigDecimal.ZERO);
+        Order order = new Order("1", Instant.now(), testCustomer, modifiableList, BigDecimal.ZERO);
 
         // when & then
         assertThatThrownBy(() -> order.getOrderedItems().add(orderLine))
@@ -93,7 +93,7 @@ class OrderTest {
         Product testProduct = new Electronics("000", "Keyboard", new BigDecimal("299.99"), 10);
         CartItem item = testProduct.toCartItem(new NoConfiguration(), 1);
         List<CartItem> items = List.of(item);
-        Order order = new Order("1", Instant.now(), testCustomer, items, new BigDecimal("299.99"), BigDecimal.ZERO);
+        Order order = new Order("1", Instant.now(), testCustomer, items, BigDecimal.ZERO);
 
         // when
         testCustomer.setFirstName("Tomasz");
@@ -112,7 +112,7 @@ class OrderTest {
         Instant placedAt = Instant.parse("2026-07-29T23:34:00Z");
 
         // when
-        Order order = new Order("1", placedAt, testCustomer, List.of(item), new BigDecimal("299.99"), BigDecimal.ZERO);
+        Order order = new Order("1", placedAt, testCustomer, List.of(item), BigDecimal.ZERO);
 
         // then
         assertThat(order.getPlacedAt()).isEqualTo(placedAt);
@@ -126,7 +126,7 @@ class OrderTest {
         CartItem item = testProduct.toCartItem(new NoConfiguration(), 1);
 
         // when & then
-        assertThatThrownBy(() -> new Order("1", null, testCustomer, List.of(item), new BigDecimal("299.99"), BigDecimal.ZERO))
+        assertThatThrownBy(() -> new Order("1", null, testCustomer, List.of(item), BigDecimal.ZERO))
                 .isInstanceOf(NullPointerException.class);
     }
 
@@ -135,8 +135,7 @@ class OrderTest {
         // given
         Order order = new Order("1", Instant.now(), createTestCustomer(),
                 List.of(new Electronics("000", "Keyboard", new BigDecimal("299.99"), 10)
-                        .toCartItem(new NoConfiguration(), 1)),
-                new BigDecimal("299.99"), BigDecimal.ZERO);
+                        .toCartItem(new NoConfiguration(), 1)), BigDecimal.ZERO);
 
         // when
         order.changeStatus(OrderStatus.PAID);
@@ -150,8 +149,7 @@ class OrderTest {
         // given
         Order order = new Order("1", Instant.now(), createTestCustomer(),
                 List.of(new Electronics("000", "Keyboard", new BigDecimal("299.99"), 10)
-                        .toCartItem(new NoConfiguration(), 1)),
-                new BigDecimal("299.99"), BigDecimal.ZERO);
+                        .toCartItem(new NoConfiguration(), 1)), BigDecimal.ZERO);
 
         // when & then
         assertThatThrownBy(() -> order.changeStatus(OrderStatus.SHIPPED))
@@ -168,7 +166,7 @@ class OrderTest {
         List<CartItem> items = List.of(item);
 
         // when
-        Order order = new Order("1", Instant.now(), testCustomer, items, new BigDecimal("1000.00"), new BigDecimal("100.00"));
+        Order order = new Order("1", Instant.now(), testCustomer, items, new BigDecimal("100.00"));
 
         // then
         assertThat(order.getTotalAmount()).isEqualTo(new BigDecimal("900.00"));
@@ -179,8 +177,7 @@ class OrderTest {
         // when & then
         assertThatThrownBy(() -> new Order("1", Instant.now(), createTestCustomer(),
                 List.of(new Electronics("000", "Keyboard", new BigDecimal("299.99"), 10)
-                        .toCartItem(new NoConfiguration(), 1)),
-                new BigDecimal("299.99"), new BigDecimal("300.00")))
+                        .toCartItem(new NoConfiguration(), 1)), new BigDecimal("300.00")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Discount amount cannot exceed subtotal.");
     }

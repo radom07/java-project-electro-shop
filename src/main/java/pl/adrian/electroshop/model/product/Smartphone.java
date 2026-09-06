@@ -7,7 +7,6 @@ import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 import pl.adrian.electroshop.model.product.configuration.SmartphoneConfiguration;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 

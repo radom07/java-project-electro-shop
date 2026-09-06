@@ -10,7 +10,6 @@ import pl.adrian.electroshop.model.product.configuration.NoConfiguration;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,7 +30,7 @@ class InMemoryOrderRepositoryTest {
         Electronics cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 100);
         CartItem cartItem = cable.toCartItem(new NoConfiguration(), 2);
 
-        sampleOrder = new Order("OR1", Instant.now(), sampleCustomer, List.of(cartItem), new BigDecimal("99.98"), BigDecimal.ZERO);
+        sampleOrder = new Order("OR1", Instant.now(), sampleCustomer, List.of(cartItem), BigDecimal.ZERO);
     }
 
     @Test
@@ -51,7 +50,7 @@ class InMemoryOrderRepositoryTest {
 
         Electronics cable = new Electronics("E2", "HDMI Cable", new BigDecimal("29.99"), 50);
         CartItem otherItem = cable.toCartItem(new NoConfiguration(), 1);
-        Order updatedOrder = new Order("OR1", Instant.now(), sampleCustomer, List.of(otherItem), new BigDecimal("29.99"), BigDecimal.ZERO);
+        Order updatedOrder = new Order("OR1", Instant.now(), sampleCustomer, List.of(otherItem), BigDecimal.ZERO);
 
         // when
         repository.save(updatedOrder);
@@ -113,7 +112,7 @@ class InMemoryOrderRepositoryTest {
         // given
         Electronics cable = new Electronics("E2", "HDMI Cable", new BigDecimal("29.99"), 50);
         CartItem otherItem = cable.toCartItem(new NoConfiguration(), 1);
-        Order secondOrder = new Order("OR2", Instant.now(), sampleCustomer, List.of(otherItem), new BigDecimal("29.99"), BigDecimal.ZERO);
+        Order secondOrder = new Order("OR2", Instant.now(), sampleCustomer, List.of(otherItem), BigDecimal.ZERO);
 
         repository.save(sampleOrder);
         repository.save(secondOrder);

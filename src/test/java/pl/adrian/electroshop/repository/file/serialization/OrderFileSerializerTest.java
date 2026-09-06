@@ -29,8 +29,7 @@ class OrderFileSerializerTest {
         Electronics cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 100);
         CartItem cartItem = cable.toCartItem(new NoConfiguration(), 2);
 
-        sampleOrder = new Order("OR1", Instant.parse("2026-08-03T12:00:00Z"), customer, List.of(cartItem),
-                new BigDecimal("99.98"), new BigDecimal("10.00"));
+        sampleOrder = new Order("OR1", Instant.parse("2026-08-03T12:00:00Z"), customer, List.of(cartItem), new BigDecimal("10.00"));
     }
 
     @Test

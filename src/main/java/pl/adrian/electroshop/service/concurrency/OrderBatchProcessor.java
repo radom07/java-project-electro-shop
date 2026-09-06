@@ -22,13 +22,18 @@ public class OrderBatchProcessor {
     private final OrderProcessor orderProcessor;
     @NonNull
     private final ExecutorService executorService;
-    private final long simulatedDelayMillis;
+    @NonNull
+    private final Runnable preProcessingHook;
+
+    public OrderBatchProcessor(OrderProcessor orderProcessor, ExecutorService executorService) {
+        this(orderProcessor, executorService, () -> {});
+    }
 
     public List<Invoice> processSequentially(List<Order> orders) {
         log.info("Processing {} order(s) sequentially", orders.size());
         List<Invoice> invoices = new ArrayList<>();
         for (Order order : orders) {
-            invoices.add(processOrderWithDelay(order));
+            invoices.add(processOrder(order));
         }
         return invoices;
     }
@@ -36,7 +41,7 @@ public class OrderBatchProcessor {
     public List<Invoice> processConcurrently(List<Order> orders) {
         log.info("Processing {} order(s) concurrently", orders.size());
         List<Future<Invoice>> futures = orders.stream()
-                .map(order -> executorService.submit(() -> processOrderWithDelay(order)))
+                .map(order -> executorService.submit(() -> processOrder(order)))
                 .toList();
 
         List<Invoice> invoices = new ArrayList<>();
@@ -49,30 +54,16 @@ public class OrderBatchProcessor {
     public CompletableFuture<List<Invoice>> processAsync(List<Order> orders) {
         log.info("Processing {} order(s) asynchronously", orders.size());
         List<CompletableFuture<Invoice>> futures = orders.stream()
-                .map(order -> CompletableFuture.supplyAsync(
-                        () -> processOrderWithDelay(order), executorService))
+                .map(order -> CompletableFuture.supplyAsync(() -> processOrder(order), executorService))
                 .toList();
 
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
                 .thenApply(v -> futures.stream().map(CompletableFuture::join).toList());
     }
 
-    private Invoice processOrderWithDelay(Order order) {
-        simulateExternalProcessingDelay();
+    private Invoice processOrder(Order order) {
+        preProcessingHook.run();
         return orderProcessor.processOrder(order);
-    }
-
-    private void simulateExternalProcessingDelay() {
-        if (simulatedDelayMillis <= 0) {
-            return;
-        }
-        try {
-            Thread.sleep(simulatedDelayMillis);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.warn("Order processing was interrupted during simulated delay", e);
-            throw new IllegalStateException("Order processing was interrupted", e);
-        }
     }
 
     private Invoice resolve(Future<Invoice> future) {

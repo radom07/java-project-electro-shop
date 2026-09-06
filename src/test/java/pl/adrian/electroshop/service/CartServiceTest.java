@@ -230,8 +230,8 @@ class CartServiceTest {
 
         // then
         assertThat(order.getSubtotal()).isEqualByComparingTo("99.98");
-        assertThat(order.getDiscountAmount()).isEqualByComparingTo("9.998");
-        assertThat(order.getTotalAmount()).isEqualByComparingTo("89.982");
+        assertThat(order.getDiscountAmount()).isEqualByComparingTo("10.00");   // było "9.998"
+        assertThat(order.getTotalAmount()).isEqualByComparingTo("89.98");      // było "89.982"
     }
 
     @Test

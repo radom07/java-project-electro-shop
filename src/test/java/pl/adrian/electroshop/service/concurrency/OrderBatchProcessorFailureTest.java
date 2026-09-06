@@ -25,7 +25,10 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OrderBatchProcessorFailureTest {
@@ -47,7 +50,7 @@ class OrderBatchProcessorFailureTest {
     private Order createOrder(String orderId, Customer customer) {
         Electronics product = new Electronics(orderId + "-P", "Product", new BigDecimal("10.00"), 5);
         CartItem item = product.toCartItem(new NoConfiguration(), 1);
-        return new Order(orderId, Instant.now(), customer, List.of(item), new BigDecimal("10.00"), BigDecimal.ZERO);
+        return new Order(orderId, Instant.now(), customer, List.of(item), BigDecimal.ZERO);
     }
 
     @Test
@@ -57,7 +60,7 @@ class OrderBatchProcessorFailureTest {
                 .thenThrow(new RuntimeException("Simulated payment gateway failure"));
 
         ExecutorService executor = Executors.newFixedThreadPool(1);
-        OrderBatchProcessor processor = new OrderBatchProcessor(orderProcessor, executor, 0);
+        OrderBatchProcessor processor = new OrderBatchProcessor(orderProcessor, executor);
 
         // when & then
         assertThatThrownBy(() -> processor.processSequentially(orders))
@@ -78,7 +81,7 @@ class OrderBatchProcessorFailureTest {
                 .thenThrow(new RuntimeException("Simulated payment gateway failure"));
 
         ExecutorService executor = Executors.newFixedThreadPool(2);
-        OrderBatchProcessor processor = new OrderBatchProcessor(orderProcessor, executor, 0);
+        OrderBatchProcessor processor = new OrderBatchProcessor(orderProcessor, executor);
 
         // when & then
         assertThatThrownBy(() -> processor.processConcurrently(orders))
@@ -97,7 +100,7 @@ class OrderBatchProcessorFailureTest {
                 .thenThrow(new RuntimeException("Simulated payment gateway failure"));
 
         ExecutorService executor = Executors.newFixedThreadPool(1);
-        OrderBatchProcessor processor = new OrderBatchProcessor(orderProcessor, executor, 0);
+        OrderBatchProcessor processor = new OrderBatchProcessor(orderProcessor, executor);
 
         // when
         CompletableFuture<List<Invoice>> future = processor.processAsync(List.of(orders.get(0)));
@@ -119,7 +122,7 @@ class OrderBatchProcessorFailureTest {
                 .thenThrow(new RuntimeException("Simulated payment gateway failure"));
 
         ExecutorService executor = Executors.newFixedThreadPool(2);
-        OrderBatchProcessor processor = new OrderBatchProcessor(orderProcessor, executor, 0);
+        OrderBatchProcessor processor = new OrderBatchProcessor(orderProcessor, executor);
 
         // when
         assertThatThrownBy(() -> processor.processConcurrently(orders))

@@ -32,15 +32,14 @@ public class Order {
                  @NonNull Instant placedAt,
                  @NonNull Customer customer,
                  @NonNull List<CartItem> cartItems,
-                 @NonNull BigDecimal subtotal,
                  @NonNull BigDecimal discountAmount) {
 
-        if (cartItems.isEmpty()) {
-            throw new IllegalArgumentException("Cannot create order with empty cart.");
-        }
-        if (discountAmount.compareTo(subtotal) > 0) {
-            throw new IllegalArgumentException("Discount amount cannot exceed subtotal.");
-        }
+        List<OrderLine> orderedItems = cartItems.stream()
+                .map(OrderLine::new)
+                .toList();
+        BigDecimal subtotal = computeSubtotal(orderedItems);
+
+        validate(orderedItems, subtotal, discountAmount);
 
         this.orderId = orderId;
         this.placedAt = placedAt;
@@ -48,15 +47,19 @@ public class Order {
         this.customerFirstName = customer.getFirstName();
         this.customerLastName = customer.getLastName();
         this.customerEmail = customer.getEmail();
-        this.orderedItems = cartItems.stream()
-                .map(OrderLine::new)
-                .toList();
+        this.orderedItems = orderedItems;
         this.subtotal = subtotal;
         this.discountAmount = discountAmount;
         this.totalAmount = subtotal.subtract(discountAmount);
     }
 
     public Order(OrderSnapshot snapshot) {
+        List<OrderLine> orderedItems = List.copyOf(snapshot.orderedItems());
+        BigDecimal subtotal = computeSubtotal(orderedItems);
+
+        validateSubtotalMatchesItems(subtotal, snapshot.subtotal());
+        validate(orderedItems, subtotal, snapshot.discountAmount());
+
         this.orderId = snapshot.orderId();
         this.placedAt = snapshot.placedAt();
         this.customerId = snapshot.customerId();
@@ -64,10 +67,35 @@ public class Order {
         this.customerLastName = snapshot.customerLastName();
         this.customerEmail = snapshot.customerEmail();
         this.status = snapshot.status();
-        this.orderedItems = List.copyOf(snapshot.orderedItems());
-        this.subtotal = snapshot.subtotal();
+        this.orderedItems = orderedItems;
+        this.subtotal = subtotal;
         this.discountAmount = snapshot.discountAmount();
-        this.totalAmount = this.subtotal.subtract(this.discountAmount);
+        this.totalAmount = subtotal.subtract(this.discountAmount);
+    }
+
+    private static BigDecimal computeSubtotal(List<OrderLine> orderedItems) {
+        return orderedItems.stream()
+                .map(OrderLine::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private static void validateSubtotalMatchesItems(BigDecimal computedSubtotal, BigDecimal declaredSubtotal) {
+        if (computedSubtotal.compareTo(declaredSubtotal) != 0) {
+            throw new IllegalArgumentException(
+                    "Persisted subtotal (" + declaredSubtotal + ") does not match sum of order items (" + computedSubtotal + ").");
+        }
+    }
+
+    private static void validate(List<OrderLine> orderedItems, BigDecimal subtotal, BigDecimal discountAmount) {
+        if (orderedItems.isEmpty()) {
+            throw new IllegalArgumentException("Cannot create order with empty cart.");
+        }
+        if (discountAmount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Discount amount cannot be negative.");
+        }
+        if (discountAmount.compareTo(subtotal) > 0) {
+            throw new IllegalArgumentException("Discount amount cannot exceed subtotal.");
+        }
     }
 
     public void changeStatus(OrderStatus newStatus) {
@@ -102,7 +130,6 @@ public class Order {
         private Instant placedAt;
         private Customer customer;
         private List<CartItem> cartItems;
-        private BigDecimal subtotal;
         private BigDecimal discountAmount = BigDecimal.ZERO;
 
         private Builder() {
@@ -128,11 +155,6 @@ public class Order {
             return this;
         }
 
-        public Builder subtotal(BigDecimal subtotal) {
-            this.subtotal = subtotal;
-            return this;
-        }
-
         public Builder discountAmount(BigDecimal discountAmount) {
             this.discountAmount = discountAmount;
             return this;
@@ -143,8 +165,7 @@ public class Order {
             Objects.requireNonNull(placedAt, "placedAt is required");
             Objects.requireNonNull(customer, "customer is required");
             Objects.requireNonNull(cartItems, "cartItems is required");
-            Objects.requireNonNull(subtotal, "subtotal is required");
-            return new Order(orderId, placedAt, customer, cartItems, subtotal, discountAmount);
+            return new Order(orderId, placedAt, customer, cartItems, discountAmount);
         }
     }
 }

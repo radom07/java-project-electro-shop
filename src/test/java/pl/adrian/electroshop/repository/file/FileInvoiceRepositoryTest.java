@@ -19,7 +19,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,7 +47,7 @@ class FileInvoiceRepositoryTest {
         Electronics cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 100);
         CartItem cartItem = cable.toCartItem(new NoConfiguration(), 2);
 
-        Order order = new Order("OR1", Instant.now(), customer, List.of(cartItem), new BigDecimal("99.98"), BigDecimal.ZERO);
+        Order order = new Order("OR1", Instant.now(), customer, List.of(cartItem), BigDecimal.ZERO);
         sampleInvoice = new Invoice("FV/2026/08/1", LocalDate.now(), order);
     }
 

@@ -58,7 +58,7 @@ public class ProductManager {
             Product product = findProduct(productId)
                     .orElseThrow(() -> new ProductNotFoundException(productId));
             product.decreaseStock(quantity);
-            updateProduct(product);
+            productRepository.save(product);
             log.debug("Reserved {} units of product {}", quantity, productId);
         });
     }
@@ -68,7 +68,7 @@ public class ProductManager {
             Product product = findProduct(productId)
                     .orElseThrow(() -> new ProductNotFoundException(productId));
             product.increaseStock(quantity);
-            updateProduct(product);
+            productRepository.save(product);
             log.debug("Released {} units of product {}", quantity, productId);
         });
     }
