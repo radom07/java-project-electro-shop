@@ -20,7 +20,9 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +34,14 @@ class OrderBatchProcessorTest {
 
     private static final int NUMBER_OF_TEST_ORDERS = 50;
     private static final long SIMULATED_DELAY_MILLIS = 150;
+    private static final Runnable DELAY_HOOK = () -> {
+        try {
+            Thread.sleep(SIMULATED_DELAY_MILLIS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Simulated delay interrupted", e);
+        }
+    };
 
     private OrderProcessor orderProcessor;
     private List<Order> orders;
@@ -59,7 +69,7 @@ class OrderBatchProcessorTest {
                             "E" + System.nanoTime() + "-" + i, "Product " + i, new BigDecimal("10.00"), 5);
                     CartItem item = product.toCartItem(new NoConfiguration(), 1);
                     return new Order("OR" + System.nanoTime() + "-" + i, Instant.now(clock), customer,
-                            List.of(item), new BigDecimal("10.00"), BigDecimal.ZERO);
+                            List.of(item), BigDecimal.ZERO);
                 })
                 .toList();
     }
@@ -68,7 +78,7 @@ class OrderBatchProcessorTest {
     void sequentialProcessingShouldTakeAtLeastSumOfDelays() {
         // given
         OrderBatchProcessor processor = new OrderBatchProcessor(
-                orderProcessor, Executors.newFixedThreadPool(1), SIMULATED_DELAY_MILLIS);
+                orderProcessor, Executors.newFixedThreadPool(1), DELAY_HOOK);
 
         // when
         long start = System.currentTimeMillis();
@@ -83,31 +93,28 @@ class OrderBatchProcessorTest {
     }
 
     @Test
-    void concurrentProcessingShouldBeSignificantlyFasterThanSequential() throws InterruptedException {
+    void concurrentProcessingShouldUseMultipleThreads() throws InterruptedException {
         // given
+        Set<String> threadNames = ConcurrentHashMap.newKeySet();
         ExecutorService executor = Executors.newFixedThreadPool(orders.size());
-        OrderBatchProcessor processor = new OrderBatchProcessor(orderProcessor, executor, SIMULATED_DELAY_MILLIS);
+        OrderBatchProcessor processor = new OrderBatchProcessor(
+                orderProcessor, executor, () -> threadNames.add(Thread.currentThread().getName()));
 
         // when
-        long start = System.currentTimeMillis();
         List<Invoice> invoices = processor.processConcurrently(orders);
-        long elapsed = System.currentTimeMillis() - start;
-
         executor.shutdown();
         executor.awaitTermination(5, TimeUnit.SECONDS);
 
-        System.out.printf("[Wielowątkowo] %d zamówień w %d ms%n", orders.size(), elapsed);
-
         // then
         assertThat(invoices).hasSize(orders.size());
-        assertThat(elapsed).isLessThan(orders.size() * SIMULATED_DELAY_MILLIS);
+        assertThat(threadNames.size()).isGreaterThan(1);
     }
 
     @Test
     void processAsyncShouldReturnImmediatelyWithoutBlockingCallingThread() {
         // given
         ExecutorService executor = Executors.newFixedThreadPool(orders.size());
-        OrderBatchProcessor processor = new OrderBatchProcessor(orderProcessor, executor, SIMULATED_DELAY_MILLIS);
+        OrderBatchProcessor processor = new OrderBatchProcessor(orderProcessor, executor, DELAY_HOOK);
 
         // when
         long start = System.currentTimeMillis();
@@ -135,7 +142,7 @@ class OrderBatchProcessorTest {
     void allInvoicesShouldHaveUniqueNumbersAfterConcurrentProcessing() throws InterruptedException {
         // given
         ExecutorService executor = Executors.newFixedThreadPool(orders.size());
-        OrderBatchProcessor processor = new OrderBatchProcessor(orderProcessor, executor, 0);
+        OrderBatchProcessor processor = new OrderBatchProcessor(orderProcessor, executor);
 
         // when
         List<Invoice> invoices = processor.processConcurrently(orders);

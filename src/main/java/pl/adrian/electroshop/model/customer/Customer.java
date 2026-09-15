@@ -1,9 +1,17 @@
 package pl.adrian.electroshop.model.customer;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-@Data
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
+@EqualsAndHashCode(of = "customerId")
 public class Customer {
     @NonNull
     private final String customerId;

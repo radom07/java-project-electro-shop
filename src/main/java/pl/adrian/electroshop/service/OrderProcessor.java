@@ -7,7 +7,6 @@ import pl.adrian.electroshop.exception.InvalidOrderStatusTransitionException;
 import pl.adrian.electroshop.exception.OrderNotFoundException;
 import pl.adrian.electroshop.model.invoice.Invoice;
 import pl.adrian.electroshop.model.order.Order;
-import pl.adrian.electroshop.model.order.OrderLine;
 import pl.adrian.electroshop.model.order.OrderStatus;
 import pl.adrian.electroshop.repository.InvoiceRepository;
 import pl.adrian.electroshop.repository.OrderRepository;
@@ -16,8 +15,6 @@ import pl.adrian.electroshop.service.invoice.InvoiceNumberGenerator;
 
 import java.time.Clock;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 // Design Pattern: FACADE (structural, GoF)
 @Slf4j

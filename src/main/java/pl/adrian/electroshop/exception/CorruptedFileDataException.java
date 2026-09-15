@@ -6,7 +6,6 @@ public class CorruptedFileDataException extends ElectroShopException {
     }
 
     public CorruptedFileDataException(String message, Throwable cause) {
-        super(message);
-        initCause(cause);
+        super(message, cause);
     }
 }

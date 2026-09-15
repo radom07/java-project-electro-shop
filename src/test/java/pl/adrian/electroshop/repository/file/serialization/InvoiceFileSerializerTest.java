@@ -18,7 +18,6 @@ import pl.adrian.electroshop.repository.OrderRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,7 +43,7 @@ class InvoiceFileSerializerTest {
         Electronics cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 100);
         CartItem cartItem = cable.toCartItem(new NoConfiguration(), 2);
 
-        sampleOrder = new Order("OR1", Instant.now(), customer, List.of(cartItem), new BigDecimal("99.98"), BigDecimal.ZERO);
+        sampleOrder = new Order("OR1", Instant.now(), customer, List.of(cartItem), BigDecimal.ZERO);
         sampleInvoice = new Invoice("FV/2026/08/1", LocalDate.of(2026, 8, 3), sampleOrder);
     }
 

@@ -14,7 +14,6 @@ import pl.adrian.electroshop.model.order.Order;
 import pl.adrian.electroshop.model.order.OrderStatus;
 import pl.adrian.electroshop.model.product.CartItem;
 import pl.adrian.electroshop.model.product.Electronics;
-import pl.adrian.electroshop.model.product.Product;
 import pl.adrian.electroshop.model.product.configuration.NoConfiguration;
 import pl.adrian.electroshop.repository.InvoiceRepository;
 import pl.adrian.electroshop.repository.OrderRepository;
@@ -60,7 +59,7 @@ class OrderProcessorTest {
         Customer customer = new Customer("CU1", "Jan", "Kowalski", "jan.kowalski@test.pl");
         CartItem cartItem = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 10)
                 .toCartItem(new NoConfiguration(), 3);
-        order = new Order("OR1", Instant.now(fixedClock), customer, List.of(cartItem), new BigDecimal("149.97"), BigDecimal.ZERO);
+        order = new Order("OR1", Instant.now(fixedClock), customer, List.of(cartItem), BigDecimal.ZERO);
     }
 
     // processOrder
@@ -233,7 +232,7 @@ class OrderProcessorTest {
         CartItem secondItem = new Electronics("E2", "Wireless Mouse", new BigDecimal("29.99"), 5)
                 .toCartItem(new NoConfiguration(), 1);
         Order multiItemOrder = new Order("OR2", Instant.now(fixedClock), customer,
-                List.of(firstItem, secondItem), new BigDecimal("179.94"), BigDecimal.ZERO);
+                List.of(firstItem, secondItem), BigDecimal.ZERO);
 
         when(orderRepository.findById("OR2")).thenReturn(Optional.of(multiItemOrder));
 

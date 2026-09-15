@@ -22,7 +22,12 @@ public final class CompensatingAction {
         } catch (RuntimeException e) {
             log.warn("Action failed after processing {} item(s), rolling back via compensation", processed.size(), e);
             for (T item : processed) {
-                compensation.accept(item);
+                try {
+                    compensation.accept(item);
+                } catch (RuntimeException compensationException) {
+                    log.error("Compensation failed for item {}", item, compensationException);
+                    e.addSuppressed(compensationException);
+                }
             }
             throw e;
         }
