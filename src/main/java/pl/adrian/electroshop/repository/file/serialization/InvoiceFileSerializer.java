@@ -1,5 +1,6 @@
 package pl.adrian.electroshop.repository.file.serialization;
 
+import lombok.extern.slf4j.Slf4j;
 import pl.adrian.electroshop.exception.CorruptedFileDataException;
 import pl.adrian.electroshop.exception.OrderNotFoundException;
 import pl.adrian.electroshop.model.invoice.Invoice;
@@ -10,6 +11,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
+@Slf4j
 public class InvoiceFileSerializer {
 
     private final OrderRepository orderRepository;
@@ -33,12 +35,16 @@ public class InvoiceFileSerializer {
         String orderId = parsedData.getRequired("orderId");
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new OrderNotFoundException(orderId));
+                .orElseThrow(() -> {
+                    log.warn("Invoice {} references missing order: {}", invoiceNumber, orderId);
+                    return new OrderNotFoundException(orderId);
+                });
 
         try {
             LocalDate issueDate = LocalDate.parse(parsedData.getRequired("issueDate"));
             return new Invoice(invoiceNumber, issueDate, order);
         } catch (DateTimeParseException e) {
+            log.warn("Failed to parse invoice data: invalid date format for invoice {}", invoiceNumber, e);
             throw new CorruptedFileDataException("Failed to parse invoice data: invalid date format", e);
         }
     }

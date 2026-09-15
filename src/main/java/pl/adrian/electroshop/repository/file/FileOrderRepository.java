@@ -1,6 +1,7 @@
 package pl.adrian.electroshop.repository.file;
 
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import pl.adrian.electroshop.exception.FileRepositoryException;
 import pl.adrian.electroshop.model.order.Order;
 import pl.adrian.electroshop.repository.OrderRepository;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 public class FileOrderRepository implements OrderRepository {
 
     private final Path directory;
@@ -25,7 +27,9 @@ public class FileOrderRepository implements OrderRepository {
         this.serializer = serializer;
         try {
             Files.createDirectories(directory);
+            log.debug("Orders directory ready: {}", directory);
         } catch (IOException e) {
+            log.error("Could not create orders directory: {}", directory, e);
             throw new FileRepositoryException("Could not create orders directory: " + directory, e);
         }
     }
@@ -35,7 +39,9 @@ public class FileOrderRepository implements OrderRepository {
         try {
             String serializedData = serializer.serialize(order);
             Files.writeString(fileFor(order.getOrderId()), serializedData, StandardCharsets.UTF_8);
+            log.debug("Order saved to file: {}", order.getOrderId());
         } catch (IOException e) {
+            log.error("Could not save order: {}", order.getOrderId(), e);
             throw new FileRepositoryException("Could not save order: " + order.getOrderId(), e);
         }
     }
@@ -44,7 +50,9 @@ public class FileOrderRepository implements OrderRepository {
     public void deleteById(@NonNull String id) {
         try {
             Files.deleteIfExists(fileFor(id));
+            log.debug("Order file deleted: {}", id);
         } catch (IOException e) {
+            log.error("Could not delete order: {}", id, e);
             throw new FileRepositoryException("Could not delete order: " + id, e);
         }
     }
@@ -53,12 +61,14 @@ public class FileOrderRepository implements OrderRepository {
     public Optional<Order> findById(@NonNull String id) {
         Path file = fileFor(id);
         if (!Files.exists(file)) {
+            log.debug("Order file not found: {}", id);
             return Optional.empty();
         }
         try {
             List<String> lines = Files.readAllLines(file, StandardCharsets.UTF_8);
             return Optional.of(serializer.deserialize(lines));
         } catch (IOException e) {
+            log.error("Could not read order file: {}", file, e);
             throw new FileRepositoryException("Could not read order file: " + file, e);
         }
     }
@@ -71,8 +81,10 @@ public class FileOrderRepository implements OrderRepository {
                 List<String> lines = Files.readAllLines(file, StandardCharsets.UTF_8);
                 orders.add(serializer.deserialize(lines));
             }
+            log.debug("Loaded {} orders from {}", orders.size(), directory);
             return List.copyOf(orders);
         } catch (IOException e) {
+            log.error("Could not list orders in: {}", directory, e);
             throw new FileRepositoryException("Could not list orders in: " + directory, e);
         }
     }

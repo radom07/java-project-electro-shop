@@ -51,5 +51,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Logback Classic -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.5.13</version>
+        </dependency>
+
     </dependencies>
 </project>

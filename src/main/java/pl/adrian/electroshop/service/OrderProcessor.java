@@ -2,6 +2,7 @@ package pl.adrian.electroshop.service;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import pl.adrian.electroshop.exception.InvalidOrderStatusTransitionException;
 import pl.adrian.electroshop.exception.OrderNotFoundException;
 import pl.adrian.electroshop.model.invoice.Invoice;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 public class OrderProcessor {
 
@@ -38,6 +40,7 @@ public class OrderProcessor {
         Invoice invoice = generateInvoice(order);
         invoiceRepository.save(invoice);
 
+        log.info("Order {} processed, invoice {} generated", order.getOrderId(), invoice.getInvoiceNumber());
         return invoice;
     }
 
@@ -57,6 +60,7 @@ public class OrderProcessor {
 
         order.changeStatus(newStatus);
         orderRepository.save(order);
+        log.info("Order {} status changed to {}", orderId, newStatus);
     }
 
     public void cancelOrder(String orderId) {
@@ -73,6 +77,7 @@ public class OrderProcessor {
         releaseAllOrRollback(order);
         order.changeStatus(OrderStatus.CANCELLED);
         orderRepository.save(order);
+        log.info("Order {} cancelled", orderId);
     }
 
     private void releaseAllOrRollback(Order order) {
