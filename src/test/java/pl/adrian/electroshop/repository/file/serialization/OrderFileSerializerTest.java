@@ -29,7 +29,8 @@ class OrderFileSerializerTest {
         Electronics cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 100);
         CartItem cartItem = cable.toCartItem(new NoConfiguration(), 2);
 
-        sampleOrder = new Order("OR1", Instant.parse("2026-08-03T12:00:00Z"), customer, List.of(cartItem), new BigDecimal("99.98"));
+        sampleOrder = new Order("OR1", Instant.parse("2026-08-03T12:00:00Z"), customer, List.of(cartItem),
+                new BigDecimal("99.98"), new BigDecimal("10.00"));
     }
 
     @Test
@@ -42,6 +43,8 @@ class OrderFileSerializerTest {
                 .contains("orderId=OR1")
                 .contains("customerId=CU1")
                 .contains("customerFirstName=Jan")
+                .contains("subtotal=99.98")
+                .contains("discountAmount=10.00")
                 .contains("items=1")
                 .contains("item.0.productId=E1")
                 .contains("item.0.configType=NONE");
@@ -58,7 +61,8 @@ class OrderFileSerializerTest {
                 "customerLastName=Kowalski",
                 "customerEmail=jan.kowalski@test.pl",
                 "status=PLACED",
-                "totalAmount=99.98",
+                "subtotal=99.98",
+                "discountAmount=10.00",
                 "items=1",
                 "item.0.productId=E1",
                 "item.0.productName=USB-C Cable",
@@ -74,6 +78,9 @@ class OrderFileSerializerTest {
         assertThat(order.getOrderId()).isEqualTo("OR1");
         assertThat(order.getCustomerFirstName()).isEqualTo("Jan");
         assertThat(order.getStatus()).isEqualTo(OrderStatus.PLACED);
+        assertThat(order.getSubtotal()).isEqualByComparingTo("99.98");
+        assertThat(order.getDiscountAmount()).isEqualByComparingTo("10.00");
+        assertThat(order.getTotalAmount()).isEqualByComparingTo("89.98");
         assertThat(order.getOrderedItems()).hasSize(1);
         assertThat(order.getOrderedItems().get(0).getProductId()).isEqualTo("E1");
     }
@@ -83,7 +90,7 @@ class OrderFileSerializerTest {
         // given
         List<String> incompleteLines = List.of(
                 "orderId=OR1",
-                // brak placedAt
+                // brak placedAt, subtotal, discountAmount
                 "customerId=CU1"
         );
 

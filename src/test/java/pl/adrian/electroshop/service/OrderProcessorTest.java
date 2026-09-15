@@ -62,7 +62,7 @@ class OrderProcessorTest {
         Customer customer = new Customer("CU1", "Jan", "Kowalski", "jan.kowalski@test.pl");
         CartItem cartItem = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 10)
                 .toCartItem(new NoConfiguration(), 3);
-        order = new Order("OR1", Instant.now(fixedClock), customer, List.of(cartItem), new BigDecimal("149.97"));
+        order = new Order("OR1", Instant.now(fixedClock), customer, List.of(cartItem), new BigDecimal("149.97"), BigDecimal.ZERO);
     }
 
     // processOrder

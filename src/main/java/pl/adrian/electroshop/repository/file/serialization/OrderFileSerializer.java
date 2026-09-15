@@ -27,7 +27,8 @@ public class OrderFileSerializer {
         sb.append("customerLastName=").append(order.getCustomerLastName()).append("\n");
         sb.append("customerEmail=").append(order.getCustomerEmail()).append("\n");
         sb.append("status=").append(order.getStatus()).append("\n");
-        sb.append("totalAmount=").append(order.getTotalAmount()).append("\n");
+        sb.append("subtotal=").append(order.getSubtotal()).append("\n");
+        sb.append("discountAmount=").append(order.getDiscountAmount()).append("\n");
 
         List<OrderLine> items = order.getOrderedItems();
         sb.append("items=").append(items.size()).append("\n");
@@ -79,7 +80,8 @@ public class OrderFileSerializer {
                     getRequiredValue(values, "customerEmail"),
                     OrderStatus.valueOf(getRequiredValue(values, "status")),
                     orderedItems,
-                    new BigDecimal(getRequiredValue(values, "totalAmount"))
+                    new BigDecimal(getRequiredValue(values, "subtotal")),
+                    new BigDecimal(getRequiredValue(values, "discountAmount"))
             );
         } catch (Exception e) {
             throw new CorruptedFileDataException("Failed to parse order data", e);

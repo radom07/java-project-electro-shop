@@ -22,18 +22,26 @@ public class Order {
     private OrderStatus status = OrderStatus.PLACED;
 
     private final List<OrderLine> orderedItems; // zmiana na OrderLine z CartItem - zabezpieczenie niemutowalności
-    // TODO: totalAmount nie jest walidowany względem orderedItems, do rozstrzygnięcia przy Task 12 (rabaty)
+
+    private final BigDecimal subtotal;
+    private final BigDecimal discountAmount;
     private final BigDecimal totalAmount;
 
+    // Konstruktor używany przez CartService
     public Order(@NonNull String orderId,
                  @NonNull Instant placedAt,
                  @NonNull Customer customer,
                  @NonNull List<CartItem> cartItems,
-                 @NonNull BigDecimal totalAmount) {
+                 @NonNull BigDecimal subtotal,
+                 @NonNull BigDecimal discountAmount) {
 
         if (cartItems.isEmpty()) {
             throw new IllegalArgumentException("Cannot create order with empty cart.");
         }
+        if (discountAmount.compareTo(subtotal) > 0) {
+            throw new IllegalArgumentException("Discount amount cannot exceed subtotal.");
+        }
+
         this.orderId = orderId;
         this.placedAt = placedAt;
         this.customerId = customer.getCustomerId();
@@ -43,13 +51,16 @@ public class Order {
         this.orderedItems = cartItems.stream()
                 .map(OrderLine::new)
                 .toList();
-        this.totalAmount = totalAmount;
+        this.subtotal = subtotal;
+        this.discountAmount = discountAmount;
+        this.totalAmount = subtotal.subtract(discountAmount);
     }
 
     // Konstruktor do odtwarzania OrderLine z persystencji plikowej
     private Order(String orderId, Instant placedAt, String customerId,
                   String customerFirstName, String customerLastName, String customerEmail,
-                  OrderStatus status, List<OrderLine> orderedItems, BigDecimal totalAmount) {
+                  OrderStatus status, List<OrderLine> orderedItems, BigDecimal subtotal,
+                  BigDecimal discountAmount) {
         this.orderId = orderId;
         this.placedAt = placedAt;
         this.customerId = customerId;
@@ -58,16 +69,18 @@ public class Order {
         this.customerEmail = customerEmail;
         this.status = status;
         this.orderedItems = List.copyOf(orderedItems);
-        this.totalAmount = totalAmount;
+        this.subtotal = subtotal;
+        this.discountAmount = discountAmount;
+        this.totalAmount = subtotal.subtract(discountAmount);
     }
 
     public static Order reconstruct(String orderId, Instant placedAt,
                                     String customerId, String customerFirstName,
                                     String customerLastName, String customerEmail,
                                     OrderStatus status, List<OrderLine> orderedItems,
-                                    BigDecimal totalAmount) {
+                                    BigDecimal subtotal, BigDecimal discountAmount) {
         return new Order(orderId, placedAt, customerId, customerFirstName, customerLastName,
-                customerEmail, status, orderedItems, totalAmount);
+                customerEmail, status, orderedItems, subtotal, discountAmount);
     }
 
     public void changeStatus(OrderStatus newStatus) {
@@ -80,7 +93,9 @@ public class Order {
 
     @Override
     public String toString() {
-        return String.format("Order [ID: %s, Placed at: %s, Customer: %s %s, Total: %.2f zł, Items Count: %d]",
-                orderId, placedAt, customerFirstName, customerLastName, totalAmount, orderedItems.size());
+        return String.format("Order [ID: %s, Placed at: %s, Customer: %s %s, Subtotal: %.2f zł, Discount: %.2f zł, " +
+                        "Total: %.2f zł, Items Count: %d]",
+                orderId, placedAt, customerFirstName, customerLastName, subtotal, discountAmount, totalAmount,
+                orderedItems.size());
     }
 }
