@@ -8,11 +8,23 @@ import pl.adrian.electroshop.model.product.CartItem;
 import java.math.BigDecimal;
 import java.util.List;
 
+/*
+TODO: totalAmount nie jest walidowany względem orderedItems.
+// Do rozstrzygnięcia przy Task 12 (rabaty)
+ */
 @Getter
 public class Order {
     private final String orderId;
-    private final Customer customer;
-    private final List<CartItem> orderedItems;
+
+    // Zmiana z referencji na Snapshot danych klienta z momentu składania zamówienia
+    // Dzięki temu późniejsza zmiana profilu klienta nie wpływa na już złożone zamówienia.
+    private final String customerId;
+    private final String customerFirstName;
+    private final String customerLastName;
+    private final String customerEmail;
+    private OrderStatus status = OrderStatus.PLACED;
+
+    private final List<OrderLine> orderedItems; // zmiana na OrderLine z CartItem - zabezpieczenie niemutowalności
     private final BigDecimal totalAmount;
 
     public Order(@NonNull String orderId,
@@ -24,14 +36,27 @@ public class Order {
             throw new IllegalArgumentException("Cannot create order with empty cart.");
         }
         this.orderId = orderId;
-        this.customer = customer;
-        this.orderedItems = List.copyOf(cartItems);
+        this.customerId = customer.getCustomerId();
+        this.customerFirstName = customer.getFirstName();
+        this.customerLastName = customer.getLastName();
+        this.customerEmail = customer.getEmail();
+        this.orderedItems = cartItems.stream()
+                .map(OrderLine::new)
+                .toList();
         this.totalAmount = totalAmount;
+    }
+
+    public void changeStatus(OrderStatus newStatus) {
+        if (!status.canTransitionTo(newStatus)) {
+            throw new IllegalStateException(
+                    "Cannot change order status from " + status + " to " + newStatus);
+        }
+        this.status = newStatus;
     }
 
     @Override
     public String toString() {
         return String.format("Order [ID: %s, Customer: %s %s, Total: %.2f zł, Items Count: %d]",
-                orderId, customer.getFirstName(), customer.getLastName(), totalAmount, orderedItems.size());
+                orderId, customerFirstName, customerLastName, totalAmount, orderedItems.size());
     }
 }

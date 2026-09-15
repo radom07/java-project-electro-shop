@@ -1,4 +1,4 @@
-package pl.adrian.electroshop.repository;
+package pl.adrian.electroshop.repository.inmemory;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
