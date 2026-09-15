@@ -1,6 +1,7 @@
 package pl.adrian.electroshop.model.order;
 
 import org.junit.jupiter.api.Test;
+import pl.adrian.electroshop.exception.InvalidOrderStatusTransitionException;
 import pl.adrian.electroshop.model.customer.Customer;
 import pl.adrian.electroshop.model.product.CartItem;
 import pl.adrian.electroshop.model.product.Electronics;
@@ -127,5 +128,34 @@ class OrderTest {
         // when & then
         assertThatThrownBy(() -> new Order("1", null, testCustomer, List.of(item), new BigDecimal("299.99")))
                 .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void shouldChangeStatusWhenTransitionIsValid() {
+        // given
+        Order order = new Order("1", LocalDateTime.now(), createTestCustomer(),
+                List.of(new Electronics("000", "Keyboard", new BigDecimal("299.99"), 10)
+                        .toCartItem(new NoConfiguration(), 1)),
+                new BigDecimal("299.99"));
+
+        // when
+        order.changeStatus(OrderStatus.PAID);
+
+        // then
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.PAID);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenTransitionIsInvalid() {
+        // given
+        Order order = new Order("1", LocalDateTime.now(), createTestCustomer(),
+                List.of(new Electronics("000", "Keyboard", new BigDecimal("299.99"), 10)
+                        .toCartItem(new NoConfiguration(), 1)),
+                new BigDecimal("299.99"));
+
+        // when & then
+        assertThatThrownBy(() -> order.changeStatus(OrderStatus.SHIPPED))
+                .isInstanceOf(InvalidOrderStatusTransitionException.class)
+                .hasMessageContaining("Cannot change order status");
     }
 }

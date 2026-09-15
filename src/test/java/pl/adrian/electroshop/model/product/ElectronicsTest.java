@@ -1,6 +1,7 @@
 package pl.adrian.electroshop.model.product;
 
 import org.junit.jupiter.api.Test;
+import pl.adrian.electroshop.exception.InvalidProductConfigurationException;
 import pl.adrian.electroshop.model.product.configuration.ComputerConfiguration;
 import pl.adrian.electroshop.model.product.configuration.NoConfiguration;
 
@@ -42,7 +43,7 @@ class ElectronicsTest {
 
         // when & then
         assertThatThrownBy(() -> cable.validateConfiguration(new ComputerConfiguration("Intel i5", 8)))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidProductConfigurationException.class)
                 .hasMessageContaining("Electronics product does not support configuration");
     }
 

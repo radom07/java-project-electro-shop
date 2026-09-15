@@ -1,5 +1,6 @@
 package pl.adrian.electroshop.model.cart;
 
+import pl.adrian.electroshop.exception.CartItemNotFoundException;
 import pl.adrian.electroshop.model.product.CartItem;
 import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 
@@ -37,8 +38,7 @@ public class Cart {
 
     public void updateQuantity(String productId, ProductConfiguration configuration, int quantity) {
         CartItem item = findItem(productId, configuration)
-                .orElseThrow(() -> new IllegalStateException(
-                        "Item not found in cart: " + productId));
+                .orElseThrow(() -> new CartItemNotFoundException(productId));
         item.setQuantity(quantity);
     }
 

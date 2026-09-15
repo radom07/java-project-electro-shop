@@ -2,6 +2,7 @@ package pl.adrian.electroshop.model.product;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pl.adrian.electroshop.exception.InvalidProductConfigurationException;
 import pl.adrian.electroshop.model.product.configuration.NoConfiguration;
 import pl.adrian.electroshop.model.product.configuration.SmartphoneConfiguration;
 
@@ -59,7 +60,7 @@ class SmartphoneTest {
 
         // when & then
         assertThatThrownBy(() -> smartphone.validateConfiguration(configuration))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidProductConfigurationException.class)
                 .hasMessageContaining("Color Gold is not available");
     }
 
@@ -70,7 +71,7 @@ class SmartphoneTest {
 
         // when & then
         assertThatThrownBy(() -> smartphone.validateConfiguration(configuration))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidProductConfigurationException.class)
                 .hasMessageContaining("Battery capacity 6000 mAh is not available");
     }
 
@@ -81,7 +82,7 @@ class SmartphoneTest {
 
         // when & then
         assertThatThrownBy(() -> smartphone.validateConfiguration(configuration))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidProductConfigurationException.class)
                 .hasMessageContaining("Accessory Wireless Charger is not available");
     }
 
@@ -89,7 +90,7 @@ class SmartphoneTest {
     void shouldThrowExceptionWhenConfigurationTypeDoesNotMatch() {
         // when & then
         assertThatThrownBy(() -> smartphone.validateConfiguration(new NoConfiguration()))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(InvalidProductConfigurationException.class)
                 .hasMessageContaining("Invalid configuration type for Smartphone");
     }
 
@@ -113,6 +114,6 @@ class SmartphoneTest {
 
         // when & then
         assertThatThrownBy(() -> smartphone.toCartItem(configuration, 1))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(InvalidProductConfigurationException.class);
     }
 }

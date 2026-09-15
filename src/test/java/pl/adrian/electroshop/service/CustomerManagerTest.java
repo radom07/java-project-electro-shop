@@ -6,6 +6,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pl.adrian.electroshop.exception.AlreadyExistsException;
+import pl.adrian.electroshop.exception.CustomerNotFoundException;
 import pl.adrian.electroshop.model.customer.Customer;
 import pl.adrian.electroshop.repository.CustomerRepository;
 
@@ -63,7 +65,7 @@ class CustomerManagerTest {
 
         // when & then
         assertThatThrownBy(() -> customerManager.addCustomer(sampleCustomer))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(AlreadyExistsException.class)
                 .hasMessageContaining("already exists");
 
         verify(customerRepository, never()).save(any());
@@ -98,8 +100,8 @@ class CustomerManagerTest {
 
         // when & then
         assertThatThrownBy(() -> customerManager.updateCustomer(sampleCustomer))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Cannot update customer");
+                .isInstanceOf(CustomerNotFoundException.class)
+                .hasMessageContaining("Customer not found");
 
         verify(customerRepository, never()).save(any());
     }
@@ -133,7 +135,7 @@ class CustomerManagerTest {
 
         // when & then
         assertThatThrownBy(() -> customerManager.deleteCustomer(customerId))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(CustomerNotFoundException.class)
                 .hasMessageContaining("Customer not found");
 
         verify(customerRepository, never()).deleteById(anyString());

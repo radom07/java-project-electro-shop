@@ -1,5 +1,8 @@
 package pl.adrian.electroshop.service;
 
+import pl.adrian.electroshop.exception.InvalidOrderStatusTransitionException;
+import pl.adrian.electroshop.exception.OrderNotFoundException;
+import pl.adrian.electroshop.exception.ProductNotFoundException;
 import pl.adrian.electroshop.model.invoice.Invoice;
 import pl.adrian.electroshop.model.order.Order;
 import pl.adrian.electroshop.model.order.OrderLine;
@@ -52,7 +55,7 @@ public class OrderProcessor {
         }
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
 
         order.changeStatus(newStatus);
         orderRepository.save(order);
@@ -60,20 +63,19 @@ public class OrderProcessor {
 
     public void cancelOrder(String orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
 
         if (order.getStatus() != OrderStatus.PLACED) {
             if (order.getStatus() == OrderStatus.PAID) {
-                throw new IllegalStateException(
+                throw new InvalidOrderStatusTransitionException(
                         "Cannot cancel a paid order automatically — an invoice correction is required first. Order: " + orderId);
             }
-            throw new IllegalStateException("Cannot cancel order in status: " + order.getStatus() + ". Order: " + orderId);
+            throw new InvalidOrderStatusTransitionException("Cannot cancel order in status: " + order.getStatus() + ". Order: " + orderId);
         }
 
         for (OrderLine item : order.getOrderedItems()) {
             productManager.getProduct(item.getProductId())
-                    .orElseThrow(() -> new IllegalStateException(
-                            "Product no longer exists: " + item.getProductId()));
+                    .orElseThrow(() -> new ProductNotFoundException(item.getProductId()));
         }
 
         for (OrderLine item : order.getOrderedItems()) {

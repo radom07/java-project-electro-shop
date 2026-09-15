@@ -1,5 +1,7 @@
 package pl.adrian.electroshop.service;
 
+import pl.adrian.electroshop.exception.AlreadyExistsException;
+import pl.adrian.electroshop.exception.CustomerNotFoundException;
 import pl.adrian.electroshop.model.customer.Customer;
 import pl.adrian.electroshop.repository.CustomerRepository;
 
@@ -19,7 +21,7 @@ public class CustomerManager {
             throw new IllegalArgumentException("Customer cannot be null");
         }
         if (customerRepository.findById(customer.getCustomerId()).isPresent()) {
-            throw new IllegalStateException("Customer " + customer.getCustomerId() + " " + customer.getFirstName() + " already exists");
+            throw new AlreadyExistsException("Customer " + customer.getCustomerId() + " " + customer.getFirstName() + " already exists");
         }
         customerRepository.save(customer);
     }
@@ -29,7 +31,7 @@ public class CustomerManager {
             throw new IllegalArgumentException("Customer cannot be null");
         }
         if (customerRepository.findById(customer.getCustomerId()).isEmpty()) {
-            throw new IllegalStateException("Cannot update customer. Customer does not exists");
+            throw new CustomerNotFoundException(customer.getCustomerId());
         }
         customerRepository.save(customer);
     }
@@ -39,7 +41,7 @@ public class CustomerManager {
             throw new IllegalArgumentException("ID cannot be null");
         }
         customerRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
+                .orElseThrow(() -> new CustomerNotFoundException(id));
         customerRepository.deleteById(id);
     }
 

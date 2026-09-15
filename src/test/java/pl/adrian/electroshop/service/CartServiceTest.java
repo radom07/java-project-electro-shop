@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pl.adrian.electroshop.exception.InsufficientStockException;
+import pl.adrian.electroshop.exception.ProductNotFoundException;
 import pl.adrian.electroshop.model.cart.Cart;
 import pl.adrian.electroshop.model.customer.Customer;
 import pl.adrian.electroshop.model.order.Order;
@@ -54,7 +56,7 @@ class CartServiceTest {
         when(productManager.getProduct("E1")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> cartService.addToCart("E1", new NoConfiguration(), 1))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(ProductNotFoundException.class)
                 .hasMessageContaining("Product not found");
     }
 
@@ -63,7 +65,7 @@ class CartServiceTest {
         when(productManager.getProduct("E1")).thenReturn(Optional.of(cable));
 
         assertThatThrownBy(() -> cartService.addToCart("E1", new NoConfiguration(), 20))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(InsufficientStockException.class)
                 .hasMessageContaining("Not enough stock");
 
         assertThat(cart.isEmpty()).isTrue();
@@ -76,7 +78,7 @@ class CartServiceTest {
         cartService.addToCart("E1", new NoConfiguration(), 7);
 
         assertThatThrownBy(() -> cartService.addToCart("E1", new NoConfiguration(), 5))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(InsufficientStockException.class)
                 .hasMessageContaining("Not enough stock");
     }
 
@@ -143,7 +145,7 @@ class CartServiceTest {
         cable.setQuantity(1);
 
         assertThatThrownBy(() -> cartService.placeOrder(customer))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(InsufficientStockException.class)
                 .hasMessageContaining("Not enough stock");
 
         verify(productManager, never()).updateProduct(any());
@@ -159,7 +161,7 @@ class CartServiceTest {
         cartService.addToCart("E1", new NoConfiguration(), 2);
 
         assertThatThrownBy(() -> cartService.placeOrder(customer))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Product no longer available");
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessageContaining("Product not found");
     }
 }

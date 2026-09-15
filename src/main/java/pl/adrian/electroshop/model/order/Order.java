@@ -2,6 +2,7 @@ package pl.adrian.electroshop.model.order;
 
 import lombok.Getter;
 import lombok.NonNull;
+import pl.adrian.electroshop.exception.InvalidOrderStatusTransitionException;
 import pl.adrian.electroshop.model.customer.Customer;
 import pl.adrian.electroshop.model.product.CartItem;
 
@@ -49,7 +50,7 @@ public class Order {
 
     public void changeStatus(OrderStatus newStatus) {
         if (!status.canTransitionTo(newStatus)) {
-            throw new IllegalStateException(
+            throw new InvalidOrderStatusTransitionException(
                     "Cannot change order status from " + status + " to " + newStatus);
         }
         this.status = newStatus;

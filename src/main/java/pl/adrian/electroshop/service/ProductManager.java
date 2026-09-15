@@ -1,5 +1,7 @@
 package pl.adrian.electroshop.service;
 
+import pl.adrian.electroshop.exception.AlreadyExistsException;
+import pl.adrian.electroshop.exception.ProductNotFoundException;
 import pl.adrian.electroshop.model.product.Product;
 import pl.adrian.electroshop.repository.ProductRepository;
 
@@ -19,7 +21,7 @@ public class ProductManager {
             throw new IllegalArgumentException("Product cannot be null");
         }
         if (productRepository.findById(product.getId()).isPresent()) {
-            throw new IllegalStateException("Product " + product.getId() + " " + product.getName() + " already exists");
+            throw new AlreadyExistsException("Product " + product.getId() + " " + product.getName() + " already exists");
         }
         productRepository.save(product);
     }
@@ -29,7 +31,7 @@ public class ProductManager {
             throw new IllegalArgumentException("Product cannot be null");
         }
         if (productRepository.findById(product.getId()).isEmpty()) {
-            throw new IllegalStateException("Cannot update product. Product does not exists");
+            throw new ProductNotFoundException(product.getId());
         }
         productRepository.save(product);
     }
@@ -39,7 +41,7 @@ public class ProductManager {
             throw new IllegalArgumentException("ID cannot be null");
         }
         productRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+                .orElseThrow(() -> new ProductNotFoundException(id));
         productRepository.deleteById(id);
     }
 

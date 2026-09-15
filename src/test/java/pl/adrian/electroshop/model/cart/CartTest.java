@@ -2,6 +2,7 @@ package pl.adrian.electroshop.model.cart;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pl.adrian.electroshop.exception.CartItemNotFoundException;
 import pl.adrian.electroshop.model.product.CartItem;
 import pl.adrian.electroshop.model.product.Computer;
 import pl.adrian.electroshop.model.product.Electronics;
@@ -122,7 +123,7 @@ class CartTest {
     void shouldThrowExceptionWhenUpdatingQuantityOfMissingItem() {
         // when & then
         assertThatThrownBy(() -> cart.updateQuantity("E1", new NoConfiguration(), 5))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(CartItemNotFoundException.class)
                 .hasMessageContaining("Item not found in cart");
     }
 

@@ -1,5 +1,6 @@
 package pl.adrian.electroshop.model.product;
 
+import pl.adrian.electroshop.exception.InvalidProductConfigurationException;
 import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 import pl.adrian.electroshop.model.product.configuration.SmartphoneConfiguration;
 
@@ -38,17 +39,17 @@ public class Smartphone extends Product {
     @Override
     public void validateConfiguration(ProductConfiguration configuration) {
         if (!(configuration instanceof SmartphoneConfiguration sc)) {
-            throw new IllegalArgumentException("Invalid configuration type for Smartphone: " + getId());
+            throw new InvalidProductConfigurationException("Invalid configuration type for Smartphone: " + getId());
         }
         if (!availableColors.contains(sc.color())) {
-            throw new IllegalArgumentException("Color " + sc.color() + " is not available for this smartphone model.");
+            throw new InvalidProductConfigurationException("Color " + sc.color() + " is not available for this smartphone model.");
         }
         if (!availableBatteryCapacities.contains(sc.batteryCapacity())) {
-            throw new IllegalArgumentException("Battery capacity " + sc.batteryCapacity() + " mAh is not available.");
+            throw new InvalidProductConfigurationException("Battery capacity " + sc.batteryCapacity() + " mAh is not available.");
         }
         for (String accessory : sc.accessories()) {
             if (!availableAccessories.contains(accessory)) {
-                throw new IllegalArgumentException("Accessory " + accessory + " is not available for this smartphone model.");
+                throw new InvalidProductConfigurationException("Accessory " + accessory + " is not available for this smartphone model.");
             }
         }
     }
