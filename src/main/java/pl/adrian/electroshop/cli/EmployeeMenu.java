@@ -80,7 +80,15 @@ public class EmployeeMenu {
                 List<String> colors = readCommaSeparatedStrings("Dostępne kolory (oddzielone przecinkiem): ");
                 List<Integer> batteries = readCommaSeparatedInts("Dostępne pojemności baterii w mAh (oddzielone przecinkiem): ");
                 List<String> accessories = readCommaSeparatedStrings("Dostępne akcesoria (oddzielone przecinkiem): ");
-                yield new Smartphone(id, name, price, quantity, colors, batteries, accessories);
+                yield Smartphone.builder()
+                        .id(id)
+                        .name(name)
+                        .price(price)
+                        .quantity(quantity)
+                        .colors(colors)
+                        .batteryCapacities(batteries)
+                        .accessories(accessories)
+                        .build();
             }
             default -> new Electronics(id, name, price, quantity);
         };
