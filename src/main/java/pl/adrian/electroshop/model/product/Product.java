@@ -1,4 +1,6 @@
-package pl.adrian.electroshop.model;
+package pl.adrian.electroshop.model.product;
+
+import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 
 import java.math.BigDecimal;
 
@@ -13,6 +15,14 @@ public abstract class Product {
         this.name = name;
         this.price = price;
         this.quantity = quantity;
+    }
+
+    public abstract void validateConfiguration(ProductConfiguration configuration);
+
+    // Jedyny sposób na utworzenie CartItem
+    public CartItem toCartItem(ProductConfiguration configuration, int quantity) {
+        validateConfiguration(configuration);
+        return new CartItem(id, name, price, configuration, quantity);
     }
 
     public String getId() {
