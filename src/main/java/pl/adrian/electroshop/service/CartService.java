@@ -7,6 +7,7 @@ import pl.adrian.electroshop.model.product.CartItem;
 import pl.adrian.electroshop.model.product.Product;
 import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -66,6 +67,7 @@ public class CartService {
 
         Order order = new Order(
                 UUID.randomUUID().toString(),
+                LocalDateTime.now(),
                 customer,
                 cart.getItems(),
                 cart.getTotal()
@@ -76,4 +78,3 @@ public class CartService {
         return order;
     }
 }
-
