@@ -48,6 +48,30 @@ public class Order {
         this.totalAmount = totalAmount;
     }
 
+    // Konstruktor do odtwarzania OrderLine z persystencji plikowej
+    private Order(String orderId, LocalDateTime placedAt, String customerId,
+                  String customerFirstName, String customerLastName, String customerEmail,
+                  OrderStatus status, List<OrderLine> orderedItems, BigDecimal totalAmount) {
+        this.orderId = orderId;
+        this.placedAt = placedAt;
+        this.customerId = customerId;
+        this.customerFirstName = customerFirstName;
+        this.customerLastName = customerLastName;
+        this.customerEmail = customerEmail;
+        this.status = status;
+        this.orderedItems = List.copyOf(orderedItems);
+        this.totalAmount = totalAmount;
+    }
+
+    public static Order reconstruct(String orderId, LocalDateTime placedAt,
+                                    String customerId, String customerFirstName,
+                                    String customerLastName, String customerEmail,
+                                    OrderStatus status, List<OrderLine> orderedItems,
+                                    BigDecimal totalAmount) {
+        return new Order(orderId, placedAt, customerId, customerFirstName, customerLastName,
+                customerEmail, status, orderedItems, totalAmount);
+    }
+
     public void changeStatus(OrderStatus newStatus) {
         if (!status.canTransitionTo(newStatus)) {
             throw new InvalidOrderStatusTransitionException(

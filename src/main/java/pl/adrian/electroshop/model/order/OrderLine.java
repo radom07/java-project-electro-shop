@@ -27,6 +27,16 @@ public final class OrderLine {
         this.quantity = cartItem.getQuantity();
     }
 
+    // Konstruktor do odtwarzania OrderLine z persystencji plikowej
+    public OrderLine(String productId, String productName, BigDecimal unitPrice,
+                     ProductConfiguration configuration, int quantity) {
+        this.productId = productId;
+        this.productName = productName;
+        this.unitPrice = unitPrice;
+        this.configuration = configuration;
+        this.quantity = quantity;
+    }
+
     public BigDecimal getSubtotal() {
         return unitPrice.multiply(BigDecimal.valueOf(quantity));
     }

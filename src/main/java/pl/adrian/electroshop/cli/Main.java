@@ -9,6 +9,10 @@ import pl.adrian.electroshop.repository.CustomerRepository;
 import pl.adrian.electroshop.repository.InvoiceRepository;
 import pl.adrian.electroshop.repository.OrderRepository;
 import pl.adrian.electroshop.repository.ProductRepository;
+import pl.adrian.electroshop.repository.file.FileInvoiceRepository;
+import pl.adrian.electroshop.repository.file.FileOrderRepository;
+import pl.adrian.electroshop.repository.file.serialization.InvoiceFileSerializer;
+import pl.adrian.electroshop.repository.file.serialization.OrderFileSerializer;
 import pl.adrian.electroshop.repository.inmemory.InMemoryCustomerRepository;
 import pl.adrian.electroshop.repository.inmemory.InMemoryInvoiceRepository;
 import pl.adrian.electroshop.repository.inmemory.InMemoryOrderRepository;
@@ -21,20 +25,45 @@ import pl.adrian.electroshop.service.invoice.InvoiceNumberGenerator;
 import pl.adrian.electroshop.service.invoice.SequentialInvoiceNumberGenerator;
 
 import java.math.BigDecimal;
+import java.nio.file.Path;
 import java.util.List;
 
 public class Main {
 
     public static void main(String[] args) {
+        ConsoleReader reader = new ConsoleReader();
 
+        System.out.println("Gdzie przechowywać zamówienia i faktury?");
+        System.out.println("1. W pamięci (dane znikają po zamknięciu)");
+        System.out.println("2. W plikach (data/orders, data/invoices)");
+        System.out.print("Wybierz opcję: ");
+        String storageChoice = reader.readLine();
+
+        OrderRepository orderRepository;
+        InvoiceRepository invoiceRepository;
+
+        // Inicjalizacja repozytoriów w zależności od wyboru
+        if ("2".equals(storageChoice)) {
+            OrderFileSerializer orderSerializer = new OrderFileSerializer();
+            orderRepository = new FileOrderRepository(Path.of("data/orders"), orderSerializer);
+
+            InvoiceFileSerializer invoiceSerializer = new InvoiceFileSerializer(orderRepository);
+            invoiceRepository = new FileInvoiceRepository(Path.of("data/invoices"), invoiceSerializer);
+            System.out.println("--> Wybrano zapis do plików.");
+        } else {
+            orderRepository = new InMemoryOrderRepository();
+            invoiceRepository = new InMemoryInvoiceRepository();
+            System.out.println("--> Wybrano zapis w pamięci.");
+        }
+
+        // Klienci i produkty zawsze w pamięci
         ProductRepository productRepository = new InMemoryProductRepository();
         CustomerRepository customerRepository = new InMemoryCustomerRepository();
-        OrderRepository orderRepository = new InMemoryOrderRepository();
-        InvoiceRepository invoiceRepository = new InMemoryInvoiceRepository();
 
         ProductManager productManager = new ProductManager(productRepository);
         CustomerManager customerManager = new CustomerManager(customerRepository);
         InvoiceNumberGenerator invoiceNumberGenerator = new SequentialInvoiceNumberGenerator();
+
         OrderProcessor orderProcessor =
                 new OrderProcessor(orderRepository, invoiceRepository, invoiceNumberGenerator, productManager);
 
@@ -43,11 +72,10 @@ public class Main {
 
         seedSampleProducts(productManager);
 
-        ConsoleReader reader = new ConsoleReader();
         CustomerMenu customerMenu = new CustomerMenu(reader, productManager, cartService, customerManager, orderProcessor);
         EmployeeMenu employeeMenu = new EmployeeMenu(reader, productManager, orderRepository, orderProcessor);
 
-        System.out.println("Demo CLI ElectroShop");
+        System.out.println("\nDemo CLI ElectroShop");
         boolean running = true;
         while (running) {
             System.out.println();
