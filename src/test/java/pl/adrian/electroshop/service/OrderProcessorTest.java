@@ -21,7 +21,9 @@ import pl.adrian.electroshop.repository.OrderRepository;
 import pl.adrian.electroshop.service.invoice.InvoiceNumberGenerator;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,15 +51,18 @@ class OrderProcessorTest {
     private Product cable;
     private Order order;
 
+    private Clock fixedClock;
+
     @BeforeEach
     void setUp() {
-        orderProcessor = new OrderProcessor(orderRepository, invoiceRepository, invoiceNumberGenerator, productManager);
+        fixedClock = Clock.fixed(Instant.parse("2026-08-04T10:00:00Z"), ZoneId.of("Europe/Warsaw"));
+        orderProcessor = new OrderProcessor(orderRepository, invoiceRepository, invoiceNumberGenerator, productManager, fixedClock);
 
         cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 7); // 10 - 3 sprzedane
         Customer customer = new Customer("CU1", "Jan", "Kowalski", "jan.kowalski@test.pl");
         CartItem cartItem = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 10)
                 .toCartItem(new NoConfiguration(), 3);
-        order = new Order("OR1", LocalDateTime.now(), customer, List.of(cartItem), new BigDecimal("149.97"));
+        order = new Order("OR1", Instant.now(fixedClock), customer, List.of(cartItem), new BigDecimal("149.97"));
     }
 
     // processOrder

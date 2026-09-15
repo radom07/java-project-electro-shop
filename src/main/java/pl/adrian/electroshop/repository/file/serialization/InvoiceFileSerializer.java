@@ -1,6 +1,7 @@
 package pl.adrian.electroshop.repository.file.serialization;
 
 import pl.adrian.electroshop.exception.CorruptedFileDataException;
+import pl.adrian.electroshop.exception.OrderNotFoundException;
 import pl.adrian.electroshop.model.invoice.Invoice;
 import pl.adrian.electroshop.model.order.Order;
 import pl.adrian.electroshop.repository.OrderRepository;
@@ -34,12 +35,11 @@ public class InvoiceFileSerializer {
             String orderId = getRequiredValue(values, "orderId");
 
             Order order = orderRepository.findById(orderId)
-                    .orElseThrow(() -> new IllegalStateException(
-                            "Invoice " + invoiceNumber + " references missing order: " + orderId));
+                    .orElseThrow(() -> new OrderNotFoundException(orderId));
 
             return new Invoice(invoiceNumber, LocalDate.parse(getRequiredValue(values, "issueDate")), order);
         } catch (Exception e) {
-            if (e instanceof IllegalStateException) {
+            if (e instanceof OrderNotFoundException) {
                 throw e;
             }
             throw new CorruptedFileDataException("Failed to parse invoice data", e);

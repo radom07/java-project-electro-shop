@@ -10,7 +10,7 @@ import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 import pl.adrian.electroshop.model.product.configuration.SmartphoneConfiguration;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -72,7 +72,7 @@ public class OrderFileSerializer {
 
             return Order.reconstruct(
                     getRequiredValue(values, "orderId"),
-                    LocalDateTime.parse(getRequiredValue(values, "placedAt")),
+                    Instant.parse(getRequiredValue(values, "placedAt")),
                     getRequiredValue(values, "customerId"),
                     getRequiredValue(values, "customerFirstName"),
                     getRequiredValue(values, "customerLastName"),

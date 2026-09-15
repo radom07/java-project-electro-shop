@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import pl.adrian.electroshop.exception.CorruptedFileDataException;
+import pl.adrian.electroshop.exception.OrderNotFoundException;
 import pl.adrian.electroshop.model.customer.Customer;
 import pl.adrian.electroshop.model.invoice.Invoice;
 import pl.adrian.electroshop.model.order.Order;
@@ -15,6 +16,7 @@ import pl.adrian.electroshop.model.product.configuration.NoConfiguration;
 import pl.adrian.electroshop.repository.OrderRepository;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -42,7 +44,7 @@ class InvoiceFileSerializerTest {
         Electronics cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 100);
         CartItem cartItem = cable.toCartItem(new NoConfiguration(), 2);
 
-        sampleOrder = new Order("OR1", LocalDateTime.now(), customer, List.of(cartItem), new BigDecimal("99.98"));
+        sampleOrder = new Order("OR1", Instant.now(), customer, List.of(cartItem), new BigDecimal("99.98"));
         sampleInvoice = new Invoice("FV/2026/08/1", LocalDate.of(2026, 8, 3), sampleOrder);
     }
 
@@ -78,7 +80,7 @@ class InvoiceFileSerializerTest {
     }
 
     @Test
-    void shouldThrowIllegalStateExceptionWhenOrderNotFound() {
+    void shouldThrowOrderNotFoundExceptionWhenOrderNotFound() {
         // given
         List<String> lines = List.of(
                 "invoiceNumber=FV/2026/08/1",
@@ -89,8 +91,7 @@ class InvoiceFileSerializerTest {
 
         // when & then
         assertThatThrownBy(() -> serializer.deserialize(lines))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("references missing order: OR_MISSING");
+                .isInstanceOf(OrderNotFoundException.class);
     }
 
     @Test

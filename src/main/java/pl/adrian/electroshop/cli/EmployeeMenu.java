@@ -1,6 +1,7 @@
 package pl.adrian.electroshop.cli;
 
 import lombok.RequiredArgsConstructor;
+import pl.adrian.electroshop.exception.ElectroShopException;
 import pl.adrian.electroshop.model.order.Order;
 import pl.adrian.electroshop.model.order.OrderStatus;
 import pl.adrian.electroshop.model.product.Computer;
@@ -87,7 +88,7 @@ public class EmployeeMenu {
         try {
             productManager.addProduct(product);
             System.out.println("Produkt dodany.");
-        } catch (IllegalArgumentException | IllegalStateException e) {
+        } catch (ElectroShopException | IllegalArgumentException | IllegalStateException e) {
             System.out.println("Nie udało się dodać produktu: " + e.getMessage());
         }
     }
@@ -137,7 +138,7 @@ public class EmployeeMenu {
         try {
             orderProcessor.changeOrderStatus(order.getOrderId(), statuses.get(statusIndex));
             System.out.println("Status zaktualizowany.");
-        } catch (IllegalArgumentException | IllegalStateException e) {
+        } catch (ElectroShopException | IllegalArgumentException | IllegalStateException e) {
             System.out.println("Nie udało się zmienić statusu: " + e.getMessage());
         }
     }

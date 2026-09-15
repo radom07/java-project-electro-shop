@@ -17,6 +17,7 @@ import pl.adrian.electroshop.repository.file.serialization.OrderFileSerializer;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -46,7 +47,7 @@ class FileOrderRepositoryTest {
         Electronics cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 100);
         CartItem cartItem = cable.toCartItem(new NoConfiguration(), 2);
 
-        sampleOrder = new Order("OR1", LocalDateTime.now(), customer, List.of(cartItem), new BigDecimal("99.98"));
+        sampleOrder = new Order("OR1", Instant.now(), customer, List.of(cartItem), new BigDecimal("99.98"));
     }
 
     @Test

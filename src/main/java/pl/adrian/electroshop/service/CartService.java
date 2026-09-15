@@ -11,6 +11,8 @@ import pl.adrian.electroshop.model.product.CartItem;
 import pl.adrian.electroshop.model.product.Product;
 import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +22,7 @@ public class CartService {
 
     @NonNull private final ProductManager productManager;
     @NonNull private final Cart cart;
+    @NonNull private final Clock clock;
 
     public void addToCart(String productId, ProductConfiguration configuration, int quantity) {
         Product product = productManager.getProduct(productId)
@@ -49,7 +52,6 @@ public class CartService {
             throw new IllegalStateException("Cart is empty");
         }
 
-        // Walidacja dostępności wszystkich pozycji przed jakąkolwiek modyfikacją stanu
         for (CartItem item : cart.getItems()) {
             Product product = productManager.getProduct(item.getProductId())
                     .orElseThrow(() -> new ProductNotFoundException(item.getProductId()));
@@ -58,16 +60,17 @@ public class CartService {
             }
         }
 
-        // Aktualizacja stanów magazynowych
         for (CartItem item : cart.getItems()) {
             Product product = productManager.getProduct(item.getProductId()).orElseThrow();
             product.setQuantity(product.getQuantity() - item.getQuantity());
             productManager.updateProduct(product);
         }
 
+        Instant placedAt = Instant.now(clock);
+
         Order order = new Order(
                 UUID.randomUUID().toString(),
-                LocalDateTime.now(),
+                placedAt,
                 customer,
                 cart.getItems(),
                 cart.getTotal()

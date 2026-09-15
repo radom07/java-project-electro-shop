@@ -1,7 +1,11 @@
 package pl.adrian.electroshop.service.invoice;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -11,31 +15,34 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/*
-TODO: test resetu licznika, wstrzyknięcie java.time.Clock do konstruktora?
- */
 class SequentialInvoiceNumberGeneratorTest {
+
+    private Clock fixedClock;
+
+    @BeforeEach
+    void setUp() {
+        fixedClock = Clock.fixed(Instant.parse("2026-08-04T10:00:00Z"), ZoneId.of("Europe/Warsaw"));
+    }
 
     @Test
     void shouldGenerateSequentialNumbersWithinSamePeriod() {
         // given
-        SequentialInvoiceNumberGenerator generator = new SequentialInvoiceNumberGenerator();
+        SequentialInvoiceNumberGenerator generator = new SequentialInvoiceNumberGenerator(fixedClock);
 
         // when
         String first = generator.generateNumber();
         String second = generator.generateNumber();
-        String third = generator.generateNumber();
 
         // then
         assertThat(first).endsWith("/1");
+        assertThat(first).contains("/2026/08/");
         assertThat(second).endsWith("/2");
-        assertThat(third).endsWith("/3");
     }
 
     @Test
     void shouldFollowExpectedFormat() {
         // given
-        SequentialInvoiceNumberGenerator generator = new SequentialInvoiceNumberGenerator();
+        SequentialInvoiceNumberGenerator generator = new SequentialInvoiceNumberGenerator(fixedClock);
 
         // when
         String number = generator.generateNumber();
@@ -47,7 +54,7 @@ class SequentialInvoiceNumberGeneratorTest {
     @Test
     void shouldNeverGenerateDuplicateNumbersUnderConcurrentAccess() throws InterruptedException {
         // given
-        SequentialInvoiceNumberGenerator generator = new SequentialInvoiceNumberGenerator();
+        SequentialInvoiceNumberGenerator generator = new SequentialInvoiceNumberGenerator(fixedClock);
         int threadCount = 20;
         int numbersPerThread = 50;
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);

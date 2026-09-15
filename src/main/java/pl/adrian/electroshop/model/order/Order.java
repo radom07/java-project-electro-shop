@@ -7,16 +7,14 @@ import pl.adrian.electroshop.model.customer.Customer;
 import pl.adrian.electroshop.model.product.CartItem;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Getter
 public class Order {
     private final String orderId;
-    private final LocalDateTime placedAt;
+    private final Instant placedAt;
 
-    // Zmiana z referencji na Snapshot danych klienta z momentu składania zamówienia
-    // Dzięki temu późniejsza zmiana profilu klienta nie wpływa na już złożone zamówienia.
     private final String customerId;
     private final String customerFirstName;
     private final String customerLastName;
@@ -28,7 +26,7 @@ public class Order {
     private final BigDecimal totalAmount;
 
     public Order(@NonNull String orderId,
-                 @NonNull LocalDateTime placedAt,
+                 @NonNull Instant placedAt,
                  @NonNull Customer customer,
                  @NonNull List<CartItem> cartItems,
                  @NonNull BigDecimal totalAmount) {
@@ -49,7 +47,7 @@ public class Order {
     }
 
     // Konstruktor do odtwarzania OrderLine z persystencji plikowej
-    private Order(String orderId, LocalDateTime placedAt, String customerId,
+    private Order(String orderId, Instant placedAt, String customerId,
                   String customerFirstName, String customerLastName, String customerEmail,
                   OrderStatus status, List<OrderLine> orderedItems, BigDecimal totalAmount) {
         this.orderId = orderId;
@@ -63,7 +61,7 @@ public class Order {
         this.totalAmount = totalAmount;
     }
 
-    public static Order reconstruct(String orderId, LocalDateTime placedAt,
+    public static Order reconstruct(String orderId, Instant placedAt,
                                     String customerId, String customerFirstName,
                                     String customerLastName, String customerEmail,
                                     OrderStatus status, List<OrderLine> orderedItems,

@@ -1,6 +1,5 @@
 package pl.adrian.electroshop.service;
 
-import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import pl.adrian.electroshop.exception.InvalidOrderStatusTransitionException;
@@ -15,6 +14,7 @@ import pl.adrian.electroshop.repository.InvoiceRepository;
 import pl.adrian.electroshop.repository.OrderRepository;
 import pl.adrian.electroshop.service.invoice.InvoiceNumberGenerator;
 
+import java.time.Clock;
 import java.time.LocalDate;
 
 @RequiredArgsConstructor
@@ -24,6 +24,7 @@ public class OrderProcessor {
     @NonNull private final InvoiceRepository invoiceRepository;
     @NonNull private final InvoiceNumberGenerator invoiceNumberGenerator;
     @NonNull private final ProductManager productManager;
+    @NonNull private final Clock clock;
 
     public Invoice processOrder(Order order) {
         if (order == null) {
@@ -40,7 +41,7 @@ public class OrderProcessor {
 
     private Invoice generateInvoice(Order order) {
         String invoiceNumber = invoiceNumberGenerator.generateNumber();
-        return new Invoice(invoiceNumber, LocalDate.now(), order);
+        return new Invoice(invoiceNumber, LocalDate.now(clock), order);
     }
 
     public void changeOrderStatus(String orderId, OrderStatus newStatus) {

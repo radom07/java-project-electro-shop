@@ -2,27 +2,16 @@ package pl.adrian.electroshop.repository.file;
 
 import pl.adrian.electroshop.exception.FileRepositoryException;
 import pl.adrian.electroshop.model.order.Order;
-import pl.adrian.electroshop.model.order.OrderLine;
-import pl.adrian.electroshop.model.order.OrderStatus;
-import pl.adrian.electroshop.model.product.configuration.ComputerConfiguration;
-import pl.adrian.electroshop.model.product.configuration.NoConfiguration;
-import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
-import pl.adrian.electroshop.model.product.configuration.SmartphoneConfiguration;
 import pl.adrian.electroshop.repository.OrderRepository;
 import pl.adrian.electroshop.repository.file.serialization.OrderFileSerializer;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public class FileOrderRepository implements OrderRepository {

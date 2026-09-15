@@ -1,6 +1,7 @@
 package pl.adrian.electroshop.cli;
 
 import lombok.RequiredArgsConstructor;
+import pl.adrian.electroshop.exception.ElectroShopException;
 import pl.adrian.electroshop.model.customer.Customer;
 import pl.adrian.electroshop.model.invoice.Invoice;
 import pl.adrian.electroshop.model.order.Order;
@@ -92,7 +93,7 @@ public class CustomerMenu {
         try {
             cartService.addToCart(product.getId(), configuration, quantity);
             System.out.println("Dodano do koszyka.");
-        } catch (IllegalArgumentException | IllegalStateException e) {
+        } catch (ElectroShopException | IllegalArgumentException | IllegalStateException e) {
             System.out.println("Nie udało się dodać do koszyka: " + e.getMessage());
         }
     }
@@ -122,9 +123,9 @@ public class CustomerMenu {
         String email = readNonBlank("E-mail: ");
 
         Customer customer = new Customer(id, firstName, lastName, email);
-        customerManager.addCustomer(customer);
 
         try {
+            customerManager.addCustomer(customer);
             Order order = cartService.placeOrder(customer);
             Invoice invoice = orderProcessor.processOrder(order);
             myOrders.add(order);
@@ -132,7 +133,7 @@ public class CustomerMenu {
             System.out.println("Zamówienie złożone!");
             System.out.println(order);
             System.out.println(invoice);
-        } catch (IllegalArgumentException | IllegalStateException e) {
+        } catch (ElectroShopException | IllegalArgumentException | IllegalStateException e) {
             System.out.println("Nie udało się złożyć zamówienia: " + e.getMessage());
         }
     }
@@ -158,7 +159,7 @@ public class CustomerMenu {
         try {
             orderProcessor.cancelOrder(order.getOrderId());
             System.out.println("Zamówienie anulowane.");
-        } catch (IllegalArgumentException | IllegalStateException e) {
+        } catch (ElectroShopException | IllegalArgumentException | IllegalStateException e) {
             System.out.println("Nie udało się anulować zamówienia: " + e.getMessage());
         }
     }
