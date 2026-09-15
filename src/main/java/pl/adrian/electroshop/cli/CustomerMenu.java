@@ -30,7 +30,7 @@ public class CustomerMenu {
     private final CustomerManager customerManager;
     private final OrderProcessor orderProcessor;
 
-    private final List<Order> myOrders = new ArrayList<>(); // tylko w pamięci sesji CLI dla demo anulowania orderu
+    private final List<Order> sessionOrdersForDemo = new ArrayList<>();
 
     public void show() {
         boolean back = false;
@@ -117,7 +117,7 @@ public class CustomerMenu {
         }
 
         System.out.println("Podaj swoje dane do zamówienia:");
-        String id = "CU-" + System.currentTimeMillis(); // uproszczone ID do demo CLI
+        String id = generateDemoCustomerId();
         String firstName = readNonBlank("Imię: ");
         String lastName = readNonBlank("Nazwisko: ");
         String email = readNonBlank("E-mail: ");
@@ -131,7 +131,7 @@ public class CustomerMenu {
             customerManager.addCustomer(customer);
             Order order = cartService.placeOrder(customer, discountCode);
             Invoice invoice = orderProcessor.processOrder(order);
-            myOrders.add(order);
+            sessionOrdersForDemo.add(order);
 
             System.out.println("Zamówienie złożone!");
             System.out.println(order);
@@ -142,23 +142,23 @@ public class CustomerMenu {
     }
 
     private void cancelOrder() {
-        if (myOrders.isEmpty()) {
+        if (sessionOrdersForDemo.isEmpty()) {
             System.out.println("Nie złożyłeś jeszcze żadnego zamówienia.");
             return;
         }
 
         System.out.println("--- Twoje zamówienia ---");
-        for (int i = 0; i < myOrders.size(); i++) {
-            Order order = myOrders.get(i);
+        for (int i = 0; i < sessionOrdersForDemo.size(); i++) {
+            Order order = sessionOrdersForDemo.get(i);
             System.out.println((i + 1) + ". " + order + " [status: " + order.getStatus() + "]");
         }
         int index = reader.readInt("Wybierz numer zamówienia do anulowania: ") - 1;
-        if (index < 0 || index >= myOrders.size()) {
+        if (index < 0 || index >= sessionOrdersForDemo.size()) {
             System.out.println("Nieprawidłowy numer zamówienia.");
             return;
         }
 
-        Order order = myOrders.get(index);
+        Order order = sessionOrdersForDemo.get(index);
         try {
             orderProcessor.cancelOrder(order.getOrderId());
             System.out.println("Zamówienie anulowane.");
@@ -166,12 +166,6 @@ public class CustomerMenu {
             System.out.println("Nie udało się anulować zamówienia: " + e.getMessage());
         }
     }
-
-    /*
-    Uproszczone podejście przez instanceof do demonstracji CLI
-    można by to zrobić generycznie, dodając do Product opis wymaganych pytań konfiguracyjnych
-    Rzuci wyjątek jeśli opcja spoza zakresu
-     */
 
     private ProductConfiguration askForConfiguration(Product product) {
         if (product instanceof Computer computer) {
@@ -189,6 +183,7 @@ public class CustomerMenu {
 
         return new NoConfiguration();
     }
+
     private <T> T chooseFromList(String header, List<T> options) {
         System.out.println(header);
         for (int i = 0; i < options.size(); i++) {
@@ -216,7 +211,6 @@ public class CustomerMenu {
                     selected.add(availableAccessories.get(index));
                 }
             } catch (NumberFormatException ignored) {
-                // pomijam nieprawidłowy
             }
         }
         return selected;
@@ -229,5 +223,9 @@ public class CustomerMenu {
             value = reader.readLine();
         } while (value.isBlank());
         return value;
+    }
+
+    private static String generateDemoCustomerId() {
+        return "CU-" + System.currentTimeMillis();
     }
 }

@@ -1,5 +1,6 @@
 package pl.adrian.electroshop.repository.inmemory;
 
+import lombok.NonNull;
 import pl.adrian.electroshop.model.invoice.Invoice;
 import pl.adrian.electroshop.repository.InvoiceRepository;
 
@@ -13,18 +14,12 @@ public class InMemoryInvoiceRepository implements InvoiceRepository {
     private final Map<String, Invoice> invoices = new ConcurrentHashMap<>();
 
     @Override
-    public void save(Invoice invoice) {
-        if (invoice == null) {
-            throw new IllegalArgumentException("Invoice cannot be null");
-        }
+    public void save(@NonNull Invoice invoice) {
         invoices.put(invoice.getInvoiceNumber(), invoice);
     }
 
     @Override
-    public Optional<Invoice> findByInvoiceNumber(String invoiceNumber) {
-        if (invoiceNumber == null) {
-            throw new IllegalArgumentException("Invoice number cannot be null");
-        }
+    public Optional<Invoice> findByInvoiceNumber(@NonNull String invoiceNumber) {
         return Optional.ofNullable(invoices.get(invoiceNumber));
     }
 

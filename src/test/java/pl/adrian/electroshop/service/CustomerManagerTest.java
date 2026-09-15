@@ -52,8 +52,8 @@ class CustomerManagerTest {
     void shouldThrowExceptionWhenAddingNullCustomer() {
         // when & then
         assertThatThrownBy(() -> customerManager.addCustomer(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Customer cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
 
         verify(customerRepository, never()).save(any());
     }
@@ -87,8 +87,8 @@ class CustomerManagerTest {
     void shouldThrowExceptionWhenUpdatingNullCustomer() {
         // when & then
         assertThatThrownBy(() -> customerManager.updateCustomer(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Customer cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
 
         verify(customerRepository, never()).save(any());
     }
@@ -122,8 +122,8 @@ class CustomerManagerTest {
     void shouldThrowExceptionWhenDeletingWithNullId() {
         // when & then
         assertThatThrownBy(() -> customerManager.deleteCustomer(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("ID cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
 
         verify(customerRepository, never()).deleteById(anyString());
     }
@@ -147,7 +147,7 @@ class CustomerManagerTest {
         when(customerRepository.findById(customerId)).thenReturn(Optional.of(sampleCustomer));
 
         // when
-        Optional<Customer> result = customerManager.getCustomer(customerId);
+        Optional<Customer> result = customerManager.findCustomer(customerId);
 
         // then
         assertThat(result).isPresent().contains(sampleCustomer);
@@ -160,7 +160,7 @@ class CustomerManagerTest {
         when(customerRepository.findById(customerId)).thenReturn(Optional.empty());
 
         // when
-        Optional<Customer> result = customerManager.getCustomer(customerId);
+        Optional<Customer> result = customerManager.findCustomer(customerId);
 
         // then
         assertThat(result).isEmpty();

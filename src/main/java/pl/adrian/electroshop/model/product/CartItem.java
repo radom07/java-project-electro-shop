@@ -32,6 +32,13 @@ public class CartItem {
         this.quantity = quantity;
     }
 
+    public void increaseQuantity(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Increase cannot be negative");
+        }
+        this.quantity += amount;
+    }
+
     public BigDecimal getSubtotal() {
         return unitPrice.multiply(BigDecimal.valueOf(quantity));
     }

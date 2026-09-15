@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import pl.adrian.electroshop.exception.InsufficientStockException;
 import pl.adrian.electroshop.model.product.Electronics;
 import pl.adrian.electroshop.repository.inmemory.InMemoryProductRepository;
+import pl.adrian.electroshop.service.concurrency.ProductLockRegistry;
 
 import java.math.BigDecimal;
 import java.util.concurrent.CountDownLatch;
@@ -19,7 +20,7 @@ class ProductManagerConcurrencyTest {
     @Test
     void shouldNeverOversellStockUnderConcurrentReservations() throws InterruptedException {
         // given
-        ProductManager productManager = new ProductManager(new InMemoryProductRepository());
+        ProductManager productManager = new ProductManager(new InMemoryProductRepository(), new ProductLockRegistry());
 
         int initialStock = 10;
         productManager.addProduct(new Electronics("E1", "Limited Item", new BigDecimal("99.99"), initialStock));
@@ -51,13 +52,13 @@ class ProductManagerConcurrencyTest {
         // then
         assertThat(successCount.get()).isEqualTo(initialStock);
         assertThat(failureCount.get()).isEqualTo(attemptCount - initialStock);
-        assertThat(productManager.getProduct("E1").orElseThrow().getQuantity()).isZero();
+        assertThat(productManager.findProduct("E1").orElseThrow().getQuantity()).isZero();
     }
 
     @Test
     void shouldAllowConcurrentOperationsOnDifferentProductsWithoutInterference() throws InterruptedException {
         // given
-        ProductManager productManager = new ProductManager(new InMemoryProductRepository());
+        ProductManager productManager = new ProductManager(new InMemoryProductRepository(), new ProductLockRegistry());
         productManager.addProduct(new Electronics("E1", "Item A", new BigDecimal("10.00"), 100));
         productManager.addProduct(new Electronics("E2", "Item B", new BigDecimal("20.00"), 100));
 
@@ -78,7 +79,7 @@ class ProductManagerConcurrencyTest {
         executor.awaitTermination(5, TimeUnit.SECONDS);
 
         // then
-        assertThat(productManager.getProduct("E1").orElseThrow().getQuantity()).isEqualTo(50);
-        assertThat(productManager.getProduct("E2").orElseThrow().getQuantity()).isEqualTo(50);
+        assertThat(productManager.findProduct("E1").orElseThrow().getQuantity()).isEqualTo(50);
+        assertThat(productManager.findProduct("E2").orElseThrow().getQuantity()).isEqualTo(50);
     }
 }

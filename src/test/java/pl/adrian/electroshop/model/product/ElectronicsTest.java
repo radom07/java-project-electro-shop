@@ -1,6 +1,7 @@
 package pl.adrian.electroshop.model.product;
 
 import org.junit.jupiter.api.Test;
+import pl.adrian.electroshop.exception.InsufficientStockException;
 import pl.adrian.electroshop.exception.InvalidProductConfigurationException;
 import pl.adrian.electroshop.model.product.configuration.ComputerConfiguration;
 import pl.adrian.electroshop.model.product.configuration.NoConfiguration;
@@ -59,5 +60,63 @@ class ElectronicsTest {
         assertThat(cartItem.getProductId()).isEqualTo("E1");
         assertThat(cartItem.getQuantity()).isEqualTo(3);
         assertThat(cartItem.getUnitPrice()).isEqualByComparingTo("49.99");
+    }
+
+    @Test
+    void shouldDecreaseStockWhenSufficientQuantityAvailable() {
+        // given
+        Electronics cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 10);
+
+        // when
+        cable.decreaseStock(4);
+
+        // then
+        assertThat(cable.getQuantity()).isEqualTo(6);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDecreasingStockBelowZero() {
+        // given
+        Electronics cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 5);
+
+        // when & then
+        assertThatThrownBy(() -> cable.decreaseStock(6))
+                .isInstanceOf(InsufficientStockException.class)
+                .hasMessageContaining("E1");
+        assertThat(cable.getQuantity()).isEqualTo(5);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDecreasingStockByNegativeAmount() {
+        // given
+        Electronics cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 5);
+
+        // when & then
+        assertThatThrownBy(() -> cable.decreaseStock(-1))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThat(cable.getQuantity()).isEqualTo(5);
+    }
+
+    @Test
+    void shouldIncreaseStockByGivenAmount() {
+        // given
+        Electronics cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 5);
+
+        // when
+        cable.increaseStock(3);
+
+        // then
+        assertThat(cable.getQuantity()).isEqualTo(8);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenIncreasingStockByNegativeAmount() {
+        // given
+        Electronics cable = new Electronics("E1", "USB-C Cable", new BigDecimal("49.99"), 5);
+
+        // when & then
+        assertThatThrownBy(() -> cable.increaseStock(-2))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThat(cable.getQuantity()).isEqualTo(5);
     }
 }

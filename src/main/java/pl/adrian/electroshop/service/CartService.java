@@ -10,6 +10,7 @@ import pl.adrian.electroshop.model.order.Order;
 import pl.adrian.electroshop.model.product.CartItem;
 import pl.adrian.electroshop.model.product.Product;
 import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
+import pl.adrian.electroshop.service.concurrency.CompensatingAction;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -31,7 +32,7 @@ public class CartService {
     private final DiscountService discountService;
 
     public void addToCart(String productId, ProductConfiguration configuration, int quantity) {
-        Product product = productManager.getProduct(productId)
+        Product product = productManager.findProduct(productId)
                 .orElseThrow(() -> new ProductNotFoundException(productId));
 
         int alreadyInCart = cart.findItem(productId, configuration)
@@ -42,43 +43,23 @@ public class CartService {
             throw new InsufficientStockException(productId);
         }
 
-        CartItem cartItem = product.toCartItem(configuration, quantity); // walidacja
+        CartItem cartItem = product.toCartItem(configuration, quantity);
         cart.addItem(cartItem);
-    }
-
-    public List<CartItem> viewCart() {
-        return cart.getItems();
     }
 
     public Order placeOrder(Customer customer) {
         return placeOrder(customer, null);
     }
 
-    public Order placeOrder(Customer customer, String discountCode) {
-        if (customer == null) {
-            throw new IllegalArgumentException("Customer cannot be null");
-        }
+    public Order placeOrder(@NonNull Customer customer, String discountCode) {
         if (cart.isEmpty()) {
             throw new IllegalStateException("Cart is empty");
         }
 
-        List<CartItem> items = cart.getItems();
-        List<CartItem> reserved = new ArrayList<>();
-        try {
-            for (CartItem item : items) {
-                productManager.reserveStock(item.getProductId(), item.getQuantity());
-                reserved.add(item);
-            }
-        } catch (RuntimeException e) {
-            for (CartItem item : reserved) {
-                productManager.releaseStock(item.getProductId(), item.getQuantity());
-            }
-            throw e;
-        }
+        reserveAllOrRollback(cart.getItems());
+
         BigDecimal subtotal = cart.getTotal();
-        BigDecimal discountPercentage = discountService.getDiscountPercentage(discountCode)
-                .orElse(BigDecimal.ZERO);
-        BigDecimal discountAmount = subtotal.multiply(discountPercentage);
+        BigDecimal discountAmount = calculateDiscount(discountCode, subtotal);
 
         Instant placedAt = Instant.now(clock);
 
@@ -90,9 +71,25 @@ public class CartService {
                 subtotal,
                 discountAmount
         );
-
         cart.clear();
-
         return order;
+    }
+
+    private void reserveAllOrRollback(List<CartItem> items) {
+        CompensatingAction.applyToAllOrCompensate(
+                items,
+                item -> productManager.reserveStock(item.getProductId(), item.getQuantity()),
+                item -> productManager.releaseStock(item.getProductId(), item.getQuantity())
+        );
+    }
+
+    private BigDecimal calculateDiscount(String discountCode, BigDecimal subtotal) {
+        BigDecimal discountPercentage = discountService.getDiscountPercentage(discountCode)
+                .orElse(BigDecimal.ZERO);
+        return subtotal.multiply(discountPercentage);
+    }
+
+    public List<CartItem> viewCart() {
+        return cart.getItems();
     }
 }

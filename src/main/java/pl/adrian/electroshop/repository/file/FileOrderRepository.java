@@ -1,5 +1,6 @@
 package pl.adrian.electroshop.repository.file;
 
+import lombok.NonNull;
 import pl.adrian.electroshop.exception.FileRepositoryException;
 import pl.adrian.electroshop.model.order.Order;
 import pl.adrian.electroshop.repository.OrderRepository;
@@ -30,10 +31,7 @@ public class FileOrderRepository implements OrderRepository {
     }
 
     @Override
-    public void save(Order order) {
-        if (order == null) {
-            throw new IllegalArgumentException("Order cannot be null");
-        }
+    public void save(@NonNull Order order) {
         try {
             String serializedData = serializer.serialize(order);
             Files.writeString(fileFor(order.getOrderId()), serializedData, StandardCharsets.UTF_8);
@@ -43,10 +41,7 @@ public class FileOrderRepository implements OrderRepository {
     }
 
     @Override
-    public void deleteById(String id) {
-        if (id == null) {
-            throw new IllegalArgumentException("ID cannot be null");
-        }
+    public void deleteById(@NonNull String id) {
         try {
             Files.deleteIfExists(fileFor(id));
         } catch (IOException e) {
@@ -55,10 +50,7 @@ public class FileOrderRepository implements OrderRepository {
     }
 
     @Override
-    public Optional<Order> findById(String id) {
-        if (id == null) {
-            throw new IllegalArgumentException("ID cannot be null");
-        }
+    public Optional<Order> findById(@NonNull String id) {
         Path file = fileFor(id);
         if (!Files.exists(file)) {
             return Optional.empty();

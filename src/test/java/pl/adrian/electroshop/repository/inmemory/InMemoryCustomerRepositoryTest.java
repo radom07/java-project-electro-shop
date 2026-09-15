@@ -49,8 +49,8 @@ class InMemoryCustomerRepositoryTest {
     void shouldThrowExceptionWhenSavingNullCustomer() {
         // when & then
         assertThatThrownBy(() -> repository.save(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Customer cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
     }
 
     @Test
@@ -77,8 +77,8 @@ class InMemoryCustomerRepositoryTest {
     void shouldThrowExceptionWhenDeletingWithNullId() {
         // when & then
         assertThatThrownBy(() -> repository.deleteById(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("ID cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
     }
 
     @Test
@@ -94,8 +94,8 @@ class InMemoryCustomerRepositoryTest {
     void shouldThrowExceptionWhenFindingWithNullId() {
         // when & then
         assertThatThrownBy(() -> repository.findById(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("ID cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
     }
 
     @Test

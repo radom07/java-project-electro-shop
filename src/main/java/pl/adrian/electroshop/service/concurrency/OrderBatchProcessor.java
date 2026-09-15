@@ -1,9 +1,10 @@
-package pl.adrian.electroshop.service;
+package pl.adrian.electroshop.service.concurrency;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import pl.adrian.electroshop.model.invoice.Invoice;
 import pl.adrian.electroshop.model.order.Order;
+import pl.adrian.electroshop.service.OrderProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,21 +16,23 @@ import java.util.concurrent.Future;
 @RequiredArgsConstructor
 public class OrderBatchProcessor {
 
-    @NonNull private final OrderProcessor orderProcessor;
-    @NonNull private final ExecutorService executorService;
+    @NonNull
+    private final OrderProcessor orderProcessor;
+    @NonNull
+    private final ExecutorService executorService;
     private final long simulatedDelayMillis;
 
     public List<Invoice> processSequentially(List<Order> orders) {
         List<Invoice> invoices = new ArrayList<>();
         for (Order order : orders) {
-            invoices.add(processWithSimulatedDelay(order));
+            invoices.add(processOrderWithDelay(order));
         }
         return invoices;
     }
 
     public List<Invoice> processConcurrently(List<Order> orders) {
         List<Future<Invoice>> futures = orders.stream()
-                .map(order -> executorService.submit(() -> processWithSimulatedDelay(order)))
+                .map(order -> executorService.submit(() -> processOrderWithDelay(order)))
                 .toList();
 
         List<Invoice> invoices = new ArrayList<>();
@@ -42,14 +45,14 @@ public class OrderBatchProcessor {
     public CompletableFuture<List<Invoice>> processAsync(List<Order> orders) {
         List<CompletableFuture<Invoice>> futures = orders.stream()
                 .map(order -> CompletableFuture.supplyAsync(
-                        () -> processWithSimulatedDelay(order), executorService))
+                        () -> processOrderWithDelay(order), executorService))
                 .toList();
 
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
                 .thenApply(v -> futures.stream().map(CompletableFuture::join).toList());
     }
 
-    private Invoice processWithSimulatedDelay(Order order) {
+    private Invoice processOrderWithDelay(Order order) {
         simulateExternalProcessingDelay();
         return orderProcessor.processOrder(order);
     }

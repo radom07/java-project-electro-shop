@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
 class FileOrderRepositoryTest {
 
     @TempDir
-    Path tempDir; // Katalog tymczasowy, niszczony po teście
+    Path tempDir;
 
     @Mock
     private OrderFileSerializer serializer;
@@ -102,27 +102,27 @@ class FileOrderRepositoryTest {
     }
 
     @Test
-    void shouldThrowIllegalArgumentExceptionWhenSavingNullOrder() {
+    void shouldThrowNullPointerExceptionWhenSavingNullOrder() {
         // when & then
         assertThatThrownBy(() -> repository.save(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Order cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
     }
 
     @Test
-    void shouldThrowIllegalArgumentExceptionWhenFindingWithNullId() {
+    void shouldThrowNullPointerExceptionWhenFindingWithNullId() {
         // when & then
         assertThatThrownBy(() -> repository.findById(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("ID cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
     }
 
     @Test
-    void shouldThrowIllegalArgumentExceptionWhenDeletingWithNullId() {
+    void shouldThrowNullPointerExceptionWhenDeletingWithNullId() {
         // when & then
         assertThatThrownBy(() -> repository.deleteById(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("ID cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
     }
 
     @Test

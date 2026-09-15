@@ -77,8 +77,8 @@ class CartTest {
     void shouldThrowExceptionWhenAddingNullItem() {
         // when & then
         assertThatThrownBy(() -> cart.addItem(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("CartItem cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
     }
 
     @Test

@@ -97,6 +97,6 @@ class OrderFileSerializerTest {
         // when & then
         assertThatThrownBy(() -> serializer.deserialize(incompleteLines))
                 .isInstanceOf(CorruptedFileDataException.class)
-                .hasMessageContaining("Failed to parse order data");
+                .hasMessageContaining("Missing required key in file data");
     }
 }

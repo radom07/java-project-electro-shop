@@ -10,6 +10,7 @@ import pl.adrian.electroshop.model.order.OrderLine;
 import pl.adrian.electroshop.model.order.OrderStatus;
 import pl.adrian.electroshop.repository.InvoiceRepository;
 import pl.adrian.electroshop.repository.OrderRepository;
+import pl.adrian.electroshop.service.concurrency.CompensatingAction;
 import pl.adrian.electroshop.service.invoice.InvoiceNumberGenerator;
 
 import java.time.Clock;
@@ -31,11 +32,7 @@ public class OrderProcessor {
     @NonNull
     private final Clock clock;
 
-    public Invoice processOrder(Order order) {
-        if (order == null) {
-            throw new IllegalArgumentException("Order cannot be null");
-        }
-
+    public Invoice processOrder(@NonNull Order order) {
         orderRepository.save(order);
 
         Invoice invoice = generateInvoice(order);
@@ -73,21 +70,16 @@ public class OrderProcessor {
             }
             throw new InvalidOrderStatusTransitionException("Cannot cancel order in status: " + order.getStatus() + ". Order: " + orderId);
         }
-
-        List<OrderLine> released = new ArrayList<>();
-        try {
-            for (OrderLine item : order.getOrderedItems()) {
-                productManager.releaseStock(item.getProductId(), item.getQuantity());
-                released.add(item);
-            }
-        } catch (RuntimeException e) {
-            for (OrderLine item : released) {
-                productManager.reserveStock(item.getProductId(), item.getQuantity());
-            }
-            throw e;
-        }
-
+        releaseAllOrRollback(order);
         order.changeStatus(OrderStatus.CANCELLED);
         orderRepository.save(order);
+    }
+
+    private void releaseAllOrRollback(Order order) {
+        CompensatingAction.applyToAllOrCompensate(
+                order.getOrderedItems(),
+                item -> productManager.releaseStock(item.getProductId(), item.getQuantity()),
+                item -> productManager.reserveStock(item.getProductId(), item.getQuantity())
+        );
     }
 }

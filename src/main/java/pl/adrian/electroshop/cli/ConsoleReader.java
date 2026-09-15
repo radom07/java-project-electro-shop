@@ -1,8 +1,5 @@
 package pl.adrian.electroshop.cli;
 
-//Prosty wrapper na Scanner
-//żeby uniknąć tworzenia wielu instancji Scanner
-
 import java.util.Scanner;
 
 public class ConsoleReader {

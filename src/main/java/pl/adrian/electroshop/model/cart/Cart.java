@@ -1,6 +1,7 @@
 package pl.adrian.electroshop.model.cart;
 
 import lombok.Getter;
+import lombok.NonNull;
 import pl.adrian.electroshop.exception.CartItemNotFoundException;
 import pl.adrian.electroshop.model.product.CartItem;
 import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
@@ -10,20 +11,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.UUID.randomUUID;
+
 public class Cart {
 
-    @Getter private final String cartId = java.util.UUID.randomUUID().toString();
+    @Getter
+    private final String cartId = randomUUID().toString();
 
     private final List<CartItem> items = new ArrayList<>();
 
-    public void addItem(CartItem newItem) {
-        if (newItem == null) {
-            throw new IllegalArgumentException("CartItem cannot be null");
-        }
-
+    public void addItem(@NonNull CartItem newItem) {
         findItem(newItem.getProductId(), newItem.getConfiguration())
                 .ifPresentOrElse(
-                        existing -> existing.setQuantity(existing.getQuantity() + newItem.getQuantity()),
+                        existing -> existing.increaseQuantity(newItem.getQuantity()),
                         () -> items.add(newItem)
                 );
     }

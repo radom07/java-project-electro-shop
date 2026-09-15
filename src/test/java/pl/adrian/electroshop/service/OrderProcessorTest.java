@@ -69,8 +69,8 @@ class OrderProcessorTest {
     void shouldThrowExceptionWhenProcessingNullOrder() {
         // when & then
         assertThatThrownBy(() -> orderProcessor.processOrder(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Order cannot be null");
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("is marked non-null but is null");
 
         verifyNoInteractions(orderRepository, invoiceRepository, invoiceNumberGenerator);
     }
@@ -163,8 +163,6 @@ class OrderProcessorTest {
 
         // then
         assertThat(order.getStatus()).isEqualTo(OrderStatus.CANCELLED);
-        // Faktyczne przywrócenie stanu magazynowego to odpowiedzialność ProductManager
-        // (przetestowana osobno) - tu weryfikujemy tylko, że OrderProcessor o to poprosił.
         verify(productManager, times(1)).releaseStock("E1", 3);
         verify(orderRepository, times(1)).save(order);
     }
