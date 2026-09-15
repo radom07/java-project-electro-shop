@@ -1,5 +1,7 @@
 package pl.adrian.electroshop.service;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import pl.adrian.electroshop.exception.AlreadyExistsException;
 import pl.adrian.electroshop.exception.ProductNotFoundException;
 import pl.adrian.electroshop.model.product.Product;
@@ -8,13 +10,10 @@ import pl.adrian.electroshop.repository.ProductRepository;
 import java.util.List;
 import java.util.Optional;
 
+@RequiredArgsConstructor
 public class ProductManager {
 
-    private final ProductRepository productRepository;
-
-    public ProductManager(ProductRepository productRepository) {
-        this.productRepository = productRepository;
-    }
+    @NonNull private final ProductRepository productRepository;
 
     public void addProduct(Product product) {
         if (product == null) {

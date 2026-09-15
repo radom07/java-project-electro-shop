@@ -1,5 +1,6 @@
 package pl.adrian.electroshop.model.cart;
 
+import lombok.Getter;
 import pl.adrian.electroshop.exception.CartItemNotFoundException;
 import pl.adrian.electroshop.model.product.CartItem;
 import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
@@ -11,7 +12,7 @@ import java.util.Optional;
 
 public class Cart {
 
-    private final String cartId = java.util.UUID.randomUUID().toString();
+    @Getter private final String cartId = java.util.UUID.randomUUID().toString();
 
     private final List<CartItem> items = new ArrayList<>();
 
@@ -47,10 +48,6 @@ public class Cart {
                 .filter(item -> item.getProductId().equals(productId)
                         && item.getConfiguration().equals(configuration))
                 .findFirst();
-    }
-
-    public String getCartId() {
-        return cartId;
     }
 
     public List<CartItem> getItems() {

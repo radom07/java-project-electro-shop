@@ -1,16 +1,23 @@
 package pl.adrian.electroshop.model.product;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 
 import java.math.BigDecimal;
 
+@Getter
 public abstract class Product {
     private final String id;
-    private String name;
-    private BigDecimal price;
-    private int quantity;
+    @Setter private String name;
+    @Setter private BigDecimal price;
+    @Setter private int quantity;
 
-    public Product(String id, String name, BigDecimal price, int quantity) {
+    public Product(@NonNull String id,
+                   @NonNull String name,
+                   @NonNull BigDecimal price,
+                   @NonNull int quantity) {
         this.id = id;
         this.name = name;
         this.price = price;
@@ -23,33 +30,5 @@ public abstract class Product {
     public CartItem toCartItem(ProductConfiguration configuration, int quantity) {
         validateConfiguration(configuration);
         return new CartItem(id, name, price, configuration, quantity);
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
     }
 }

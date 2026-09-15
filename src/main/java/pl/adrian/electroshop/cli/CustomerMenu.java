@@ -1,5 +1,6 @@
 package pl.adrian.electroshop.cli;
 
+import lombok.RequiredArgsConstructor;
 import pl.adrian.electroshop.model.customer.Customer;
 import pl.adrian.electroshop.model.invoice.Invoice;
 import pl.adrian.electroshop.model.order.Order;
@@ -19,6 +20,7 @@ import pl.adrian.electroshop.service.ProductManager;
 import java.util.ArrayList;
 import java.util.List;
 
+@RequiredArgsConstructor
 public class CustomerMenu {
 
     private final ConsoleReader reader;
@@ -28,15 +30,6 @@ public class CustomerMenu {
     private final OrderProcessor orderProcessor;
 
     private final List<Order> myOrders = new ArrayList<>(); // tylko w pamięci sesji CLI dla demo anulowania orderu
-
-    public CustomerMenu(ConsoleReader reader, ProductManager productManager, CartService cartService,
-                        CustomerManager customerManager, OrderProcessor orderProcessor) {
-        this.reader = reader;
-        this.productManager = productManager;
-        this.cartService = cartService;
-        this.customerManager = customerManager;
-        this.orderProcessor = orderProcessor;
-    }
 
     public void show() {
         boolean back = false;

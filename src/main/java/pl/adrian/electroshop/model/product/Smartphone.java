@@ -1,5 +1,7 @@
 package pl.adrian.electroshop.model.product;
 
+import lombok.Getter;
+import lombok.NonNull;
 import pl.adrian.electroshop.exception.InvalidProductConfigurationException;
 import pl.adrian.electroshop.model.product.configuration.ProductConfiguration;
 import pl.adrian.electroshop.model.product.configuration.SmartphoneConfiguration;
@@ -8,32 +10,22 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 public class Smartphone extends Product {
     private final List<String> availableColors;
     private final List<Integer> availableBatteryCapacities; // mAh
     private final List<String> availableAccessories; // "Case", "Glass", "Charger", "Phone Holder"
 
     public Smartphone(String id, String name, BigDecimal price, int quantity,
-                      List<String> availableColors, List<Integer> availableBatteryCapacities,
-                      List<String> availableAccessories) {
+                      @NonNull List<String> availableColors,
+                      @NonNull List<Integer> availableBatteryCapacities,
+                      @NonNull List<String> availableAccessories) {
 
         super(id, name, price, quantity);
 
         this.availableColors = availableColors;
         this.availableBatteryCapacities = availableBatteryCapacities;
         this.availableAccessories = availableAccessories;
-    }
-
-    public List<String> getAvailableColors() {
-        return availableColors;
-    }
-
-    public List<Integer> getAvailableBatteryCapacities() {
-        return availableBatteryCapacities;
-    }
-
-    public List<String> getAvailableAccessories() {
-        return availableAccessories;
     }
 
     @Override

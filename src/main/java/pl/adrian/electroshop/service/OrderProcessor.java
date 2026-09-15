@@ -1,5 +1,8 @@
 package pl.adrian.electroshop.service;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import pl.adrian.electroshop.exception.InvalidOrderStatusTransitionException;
 import pl.adrian.electroshop.exception.OrderNotFoundException;
 import pl.adrian.electroshop.exception.ProductNotFoundException;
@@ -14,21 +17,13 @@ import pl.adrian.electroshop.service.invoice.InvoiceNumberGenerator;
 
 import java.time.LocalDate;
 
+@RequiredArgsConstructor
 public class OrderProcessor {
 
-    private final OrderRepository orderRepository;
-    private final InvoiceRepository invoiceRepository;
-    private final InvoiceNumberGenerator invoiceNumberGenerator;
-    private final ProductManager productManager;
-
-    public OrderProcessor(OrderRepository orderRepository,
-                          InvoiceRepository invoiceRepository,
-                          InvoiceNumberGenerator invoiceNumberGenerator, ProductManager productManager) {
-        this.orderRepository = orderRepository;
-        this.invoiceRepository = invoiceRepository;
-        this.invoiceNumberGenerator = invoiceNumberGenerator;
-        this.productManager = productManager;
-    }
+    @NonNull private final OrderRepository orderRepository;
+    @NonNull private final InvoiceRepository invoiceRepository;
+    @NonNull private final InvoiceNumberGenerator invoiceNumberGenerator;
+    @NonNull private final ProductManager productManager;
 
     public Invoice processOrder(Order order) {
         if (order == null) {
